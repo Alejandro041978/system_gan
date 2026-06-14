@@ -23,11 +23,14 @@
     <ul class="navbar-nav">
       <li><a href="/pages/instituciones.html">Instituciones</a></li>
       <li><a href="/pages/postulacion.html" data-i18n="nav_apply"></a></li>
-      <li><a href="/pages/login.html" id="nav-login-link" data-i18n="nav_login"></a></li>
-      <li><a href="/pages/portal.html" id="nav-portal-link" class="hidden" data-i18n="nav_portal"></a></li>
-      <li><a href="/pages/directorio.html" id="nav-dir-link" class="hidden" data-i18n="nav_directory"></a></li>
-      <li><a href="/pages/admin.html" id="nav-admin-link" class="hidden" data-i18n="nav_admin"></a></li>
-      <li><button id="nav-logout-btn" class="btn btn-ghost btn-sm hidden" data-i18n="nav_logout"></button></li>
+      <!-- Sin sesión -->
+      <li id="nav-login-li"><a href="/pages/login.html" data-i18n="nav_login"></a></li>
+      <!-- Con sesión -->
+      <li id="nav-portal-li" class="hidden"><a href="/pages/portal.html" data-i18n="nav_portal"></a></li>
+      <li id="nav-dir-li" class="hidden"><a href="/pages/directorio.html" data-i18n="nav_directory"></a></li>
+      <li id="nav-admin-li" class="hidden"><a href="/pages/admin.html" data-i18n="nav_admin"></a></li>
+      <li id="nav-hello-li" class="hidden"><span style="color:rgba(255,255,255,.7);font-size:.875rem;" id="nav-hello"></span></li>
+      <li id="nav-logout-li" class="hidden"><button id="nav-logout-btn" class="btn btn-ghost btn-sm" data-i18n="nav_logout"></button></li>
     </ul>
     <div class="lang-switcher">
       <button data-lang-btn="es">ES</button>
@@ -116,13 +119,16 @@
   // Mostrar/ocultar nav según sesión
   const session = await Auth.getSession();
   if (session) {
-    document.getElementById('nav-login-link').classList.add('hidden');
-    document.getElementById('nav-portal-link').classList.remove('hidden');
-    document.getElementById('nav-dir-link').classList.remove('hidden');
-    document.getElementById('nav-logout-btn').classList.remove('hidden');
+    document.getElementById('nav-login-li').classList.add('hidden');
+    document.getElementById('nav-portal-li').classList.remove('hidden');
+    document.getElementById('nav-dir-li').classList.remove('hidden');
+    document.getElementById('nav-logout-li').classList.remove('hidden');
+    document.getElementById('nav-hello-li').classList.remove('hidden');
     const profile = await Auth.getProfile();
+    const firstName = (profile?.full_name || '').split(' ')[0];
+    document.getElementById('nav-hello').textContent = `Hola, ${firstName}`;
     if (profile?.app_role === 'institution_admin' || profile?.app_role === 'super_admin') {
-      document.getElementById('nav-admin-link').classList.remove('hidden');
+      document.getElementById('nav-admin-li').classList.remove('hidden');
     }
   }
 
