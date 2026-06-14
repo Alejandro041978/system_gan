@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GAN System — Instituciones Miembro</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    .inst-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.25rem;
+    }
+    .inst-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      transition: box-shadow var(--transition), transform var(--transition);
+    }
+    .inst-card:hover {
+      box-shadow: 0 8px 24px rgba(0,0,0,.08);
+      transform: translateY(-2px);
+    }
+    .inst-type-badge {
+      display: inline-block;
+      font-size: .7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      padding: .2rem .6rem;
+      border-radius: 999px;
+      margin-bottom: .75rem;
+    }
+    .type-university { background: #eff6ff; color: #1a56db; }
+    .type-institute  { background: #f0fdf4; color: #0e9f6e; }
+    .type-college    { background: #fdf4ff; color: #9333ea; }
+    .type-other      { background: #fffbeb; color: #d97706; }
+
+    .inst-name { font-size: 1.05rem; font-weight: 700; margin-bottom: .25rem; }
+    .inst-country { font-size: .85rem; color: var(--color-text-muted); margin-bottom: 1rem; }
+    .inst-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .5rem;
+      margin-bottom: 1rem;
+    }
+    .inst-stat { font-size: .8rem; color: var(--color-text-muted); }
+    .inst-stat strong { display: block; font-size: .95rem; font-weight: 700; color: var(--color-text); }
+    .inst-accred {
+      font-size: .75rem;
+      color: var(--color-text-muted);
+      border-top: 1px solid var(--color-border);
+      padding-top: .75rem;
+      margin-top: .25rem;
+    }
+    .inst-accred span { font-weight: 600; color: var(--color-text); }
+
+    .filter-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .5rem;
+      align-items: center;
+    }
+    .filter-label {
+      font-size: .8rem;
+      font-weight: 600;
+      color: var(--color-text-muted);
+      margin-right: .25rem;
+    }
+  </style>
+  <script>
+    window.__GAN_CONFIG__ = {
+      supabaseUrl:  'https://szevodmqxuxljfelorcu.supabase.co',
+      supabaseAnon: 'sb_publishable_Se492A4JupPSQVxtdQKfSQ_CUnx1DXX'
+    };
+  </script>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="/" class="navbar-brand">GAN <span>System</span></a>
+    <ul class="navbar-nav">
+      <li><a href="/pages/instituciones.html" class="active">Instituciones</a></li>
+      <li><a href="/pages/postulacion.html" data-i18n="nav_apply"></a></li>
+      <li><a href="/pages/login.html" id="nav-login-link" data-i18n="nav_login"></a></li>
+      <li><a href="/pages/portal.html" id="nav-portal-link" class="hidden" data-i18n="nav_portal"></a></li>
+      <li><a href="/pages/directorio.html" id="nav-dir-link" class="hidden" data-i18n="nav_directory"></a></li>
+      <li><button id="nav-logout-btn" class="btn btn-ghost btn-sm hidden" data-i18n="nav_logout"></button></li>
+    </ul>
+    <div class="lang-switcher">
+      <button data-lang-btn="es">ES</button>
+      <button data-lang-btn="en">EN</button>
+      <button data-lang-btn="pt">PT</button>
+      <button data-lang-btn="fr">FR</button>
+    </div>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="container">
+    <h1>Instituciones Miembro</h1>
+    <p>Universidades e institutos que forman parte de la red GAN en todo el mundo.</p>
+  </div>
+</div>
+
+<div class="container" style="padding-bottom:3rem;">
+
+  <!-- Filtros -->
+  <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:1.25rem 1.5rem;margin-bottom:1.5rem;display:flex;flex-wrap:wrap;gap:1.25rem;align-items:center;">
+    <div class="filter-group">
+      <span class="filter-label">País:</span>
+      <div id="country-filters" class="filter-group"></div>
+    </div>
+    <div style="width:1px;background:var(--color-border);height:28px;"></div>
+    <div class="filter-group">
+      <span class="filter-label">Tipo:</span>
+      <button class="filter-chip active" data-type="all">Todos</button>
+      <button class="filter-chip" data-type="university">Universidad</button>
+      <button class="filter-chip" data-type="institute">Instituto</button>
+      <button class="filter-chip" data-type="other">Escuela</button>
+    </div>
+  </div>
+
+  <!-- Contador -->
+  <p id="inst-count" style="font-size:.875rem;color:var(--color-text-muted);margin-bottom:1rem;"></p>
+
+  <!-- Grid -->
+  <div id="inst-grid" class="inst-grid"></div>
+
+  <!-- Empty -->
+  <div id="inst-empty" class="empty-state" style="display:none;">
+    <div class="empty-state-icon">🏛️</div>
+    <h3>Sin resultados</h3>
+    <p>No hay instituciones con los filtros seleccionados.</p>
+  </div>
+
+</div>
+
+<footer style="background:var(--color-nav-bg);color:#94a3b8;padding:2rem 0;text-align:center;font-size:.85rem;">
+  <div class="container">
+    <p>© 2026 GAN System. Todos los derechos reservados.</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/js/i18n.js"></script>
+<script src="/js/supabase-client.js"></script>
+<script>
+let allInstitutions = [];
+let activeCountry = 'all';
+let activeType    = 'all';
+
+const TYPE_LABELS = {
+  university: 'Universidad',
+  institute:  'Instituto',
+  college:    'College',
+  other:      'Escuela / Centro',
+};
+const TYPE_CLASS = {
+  university: 'type-university',
+  institute:  'type-institute',
+  college:    'type-college',
+  other:      'type-other',
+};
+
+(async () => {
+  // Nav según sesión
+  const session = await Auth.getSession();
+  if (session) {
+    document.getElementById('nav-login-link').classList.add('hidden');
+    document.getElementById('nav-portal-link').classList.remove('hidden');
+    document.getElementById('nav-dir-link').classList.remove('hidden');
+    document.getElementById('nav-logout-btn').classList.remove('hidden');
+  }
+  document.getElementById('nav-logout-btn')?.addEventListener('click', () => Auth.signOut());
+
+  // Cargar instituciones
+  const { data, error } = await db
+    .from('institutions')
+    .select('*')
+    .eq('status', 'approved')
+    .order('name', { ascending: true });
+
+  if (error || !data) return;
+  allInstitutions = data;
+
+  // Construir filtros de país
+  const countries = [...new Set(data.map(i => i.country))].sort();
+  const countryBar = document.getElementById('country-filters');
+  countryBar.innerHTML = `<button class="filter-chip active" data-country="all">Todos</button>` +
+    countries.map(c => `<button class="filter-chip" data-country="${c}">${c}</button>`).join('');
+
+  countryBar.querySelectorAll('[data-country]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      countryBar.querySelectorAll('[data-country]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeCountry = btn.dataset.country;
+      render();
+    });
+  });
+
+  // Filtros de tipo
+  document.querySelectorAll('[data-type]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-type]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeType = btn.dataset.type;
+      render();
+    });
+  });
+
+  render();
+})();
+
+function render() {
+  let filtered = allInstitutions;
+  if (activeCountry !== 'all') filtered = filtered.filter(i => i.country === activeCountry);
+  if (activeType    !== 'all') filtered = filtered.filter(i => i.type    === activeType);
+
+  const grid  = document.getElementById('inst-grid');
+  const empty = document.getElementById('inst-empty');
+  const count = document.getElementById('inst-count');
+
+  count.textContent = `${filtered.length} institución${filtered.length !== 1 ? 'es' : ''}`;
+
+  if (!filtered.length) {
+    grid.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  grid.innerHTML = filtered.map(inst => {
+    const typeLabel = TYPE_LABELS[inst.type] || inst.type;
+    const typeCls   = TYPE_CLASS[inst.type]  || 'type-other';
+    const founded   = inst.founded_year ? `Fundada en ${inst.founded_year}` : '—';
+    const students  = inst.student_count ? inst.student_count.toLocaleString('es') : '—';
+    const programs  = inst.programs ?? '—';
+    const accred    = inst.accreditations
+      ? `<div class="inst-accred">Acreditaciones: <span>${inst.accreditations}</span></div>`
+      : '';
+    const webLink   = inst.website
+      ? `<a href="${inst.website}" target="_blank" rel="noopener"
+           style="font-size:.8rem;color:var(--color-primary);font-weight:600;text-decoration:none;">
+           🌐 ${inst.website.replace(/^https?:\/\//, '')}
+         </a>`
+      : '';
+
+    return `
+      <div class="inst-card">
+        <div class="inst-type-badge ${typeCls}">${typeLabel}</div>
+        <div class="inst-name">${inst.name}</div>
+        <div class="inst-country">📍 ${inst.country}</div>
+        <div class="inst-stats">
+          <div class="inst-stat"><strong>${students}</strong>Estudiantes</div>
+          <div class="inst-stat"><strong>${programs}</strong>Programas</div>
+          <div class="inst-stat"><strong>${founded}</strong>&nbsp;</div>
+        </div>
+        ${webLink}
+        ${accred}
+      </div>
+    `;
+  }).join('');
+}
+</script>
+</body>
+</html>

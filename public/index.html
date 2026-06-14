@@ -21,6 +21,7 @@
   <div class="navbar-inner">
     <a href="/" class="navbar-brand">GAN <span>System</span></a>
     <ul class="navbar-nav">
+      <li><a href="/pages/instituciones.html">Instituciones</a></li>
       <li><a href="/pages/postulacion.html" data-i18n="nav_apply"></a></li>
       <li><a href="/pages/login.html" id="nav-login-link" data-i18n="nav_login"></a></li>
       <li><a href="/pages/portal.html" id="nav-portal-link" class="hidden" data-i18n="nav_portal"></a></li>
@@ -68,6 +69,10 @@
       <div>
         <div style="font-size:2rem;font-weight:800;color:var(--color-primary);" id="stat-members-count">—</div>
         <div style="color:var(--color-text-muted);font-size:.9rem;" data-i18n-stat="stat_members">Miembros registrados</div>
+      </div>
+      <div>
+        <div style="font-size:2rem;font-weight:800;color:var(--color-primary);" id="stat-students">—</div>
+        <div style="color:var(--color-text-muted);font-size:.9rem;">Estudiantes GAN</div>
       </div>
     </div>
   </div>
@@ -125,19 +130,21 @@
 
   // Cargar estadísticas
   try {
-    const [{ count: instCount }, { count: benefitCount }, { count: memberCount }] = await Promise.all([
+    const [{ count: instCount }, { count: benefitCount }, { count: memberCount }, { data: instData }] = await Promise.all([
       db.from('institutions').select('*', { count: 'exact', head: true }).eq('status', 'approved'),
       db.from('benefits').select('*', { count: 'exact', head: true }).eq('is_active', true),
-      db.from('profiles').select('*', { count: 'exact', head: true })
+      db.from('profiles').select('*', { count: 'exact', head: true }),
+      db.from('institutions').select('country, student_count').eq('status', 'approved'),
     ]);
 
-    const { data: countries } = await db.from('institutions').select('country').eq('status', 'approved');
-    const uniqueCountries = new Set(countries?.map(r => r.country) || []).size;
+    const uniqueCountries = new Set(instData?.map(r => r.country) || []).size;
+    const totalStudents   = (instData || []).reduce((s, r) => s + (r.student_count || 0), 0);
 
-    document.getElementById('stat-members').textContent     = instCount ?? 0;
-    document.getElementById('stat-countries').textContent   = uniqueCountries;
-    document.getElementById('stat-benefits').textContent    = benefitCount ?? 0;
+    document.getElementById('stat-members').textContent      = instCount ?? 0;
+    document.getElementById('stat-countries').textContent    = uniqueCountries;
+    document.getElementById('stat-benefits').textContent     = benefitCount ?? 0;
     document.getElementById('stat-members-count').textContent = memberCount ?? 0;
+    document.getElementById('stat-students').textContent     = totalStudents.toLocaleString('es');
   } catch (_) {}
 })();
 </script>
