@@ -1,10 +1,10 @@
-// GAN Platform — Sistema de internacionalización (ES/EN/PT/FR)
+﻿// GAN Platform — Sistema de internacionalización (ES/EN/PT/FR)
 const TRANSLATIONS = {
   es: {
     // Nav
     nav_apply: 'Postular',
     nav_login: 'Acceder',
-    nav_portal: 'Portal',
+    nav_portal: 'Beneficios',
     nav_directory: 'Directorio',
     nav_admin: 'Mi Institución',
     nav_logout: 'Cerrar sesión',
@@ -13,7 +13,7 @@ const TRANSLATIONS = {
     hero_title: 'Red Global de Universidades GAN',
     hero_subtitle: 'Conectamos instituciones de educación superior para compartir beneficios, conocimiento y oportunidades para estudiantes y docentes.',
     hero_cta: 'Postular institución',
-    hero_login: 'Acceder al portal',
+    hero_login: 'Acceder a beneficios',
 
     // Postulación
     apply_title: 'Postulación de Membresía',
@@ -95,7 +95,7 @@ const TRANSLATIONS = {
     admin_confirm_delete: '¿Eliminar este usuario?',
 
     // Portal
-    portal_title: 'Portal de Beneficios',
+    portal_title: 'Beneficios GAN',
     portal_subtitle: 'Descuentos y beneficios exclusivos para miembros GAN.',
     portal_filter_all: 'Todos',
     portal_filter_software: 'Software',
@@ -134,7 +134,7 @@ const TRANSLATIONS = {
   en: {
     nav_apply: 'Apply',
     nav_login: 'Login',
-    nav_portal: 'Portal',
+    nav_portal: 'Beneficios',
     nav_directory: 'Directory',
     nav_admin: 'My Institution',
     nav_logout: 'Log out',
@@ -142,7 +142,7 @@ const TRANSLATIONS = {
     hero_title: 'GAN Global University Network',
     hero_subtitle: 'Connecting higher education institutions to share benefits, knowledge, and opportunities for students and faculty.',
     hero_cta: 'Apply for membership',
-    hero_login: 'Access portal',
+    hero_login: 'Access benefits',
 
     apply_title: 'Membership Application',
     apply_subtitle: 'Fill out the form. AI will evaluate your application based on the GAN rubric.',
@@ -220,7 +220,7 @@ const TRANSLATIONS = {
     admin_cancel: 'Cancel',
     admin_confirm_delete: 'Delete this user?',
 
-    portal_title: 'Benefits Portal',
+    portal_title: 'GAN Benefits',
     portal_subtitle: 'Exclusive discounts and benefits for GAN members.',
     portal_filter_all: 'All',
     portal_filter_software: 'Software',
@@ -257,7 +257,7 @@ const TRANSLATIONS = {
   pt: {
     nav_apply: 'Candidatar',
     nav_login: 'Entrar',
-    nav_portal: 'Portal',
+    nav_portal: 'Beneficios',
     nav_directory: 'Diretório',
     nav_admin: 'Minha Instituição',
     nav_logout: 'Sair',
@@ -265,7 +265,7 @@ const TRANSLATIONS = {
     hero_title: 'Rede Global de Universidades GAN',
     hero_subtitle: 'Conectamos instituições de ensino superior para compartilhar benefícios, conhecimento e oportunidades para estudantes e docentes.',
     hero_cta: 'Candidatar instituição',
-    hero_login: 'Acessar portal',
+    hero_login: 'Acessar benefícios',
 
     apply_title: 'Candidatura de Membro',
     apply_subtitle: 'Preencha o formulário. A IA avaliará sua candidatura com base na rubrica GAN.',
@@ -343,7 +343,7 @@ const TRANSLATIONS = {
     admin_cancel: 'Cancelar',
     admin_confirm_delete: 'Excluir este usuário?',
 
-    portal_title: 'Portal de Benefícios',
+    portal_title: 'Benefícios GAN',
     portal_subtitle: 'Descontos e benefícios exclusivos para membros GAN.',
     portal_filter_all: 'Todos',
     portal_filter_software: 'Software',
@@ -380,7 +380,7 @@ const TRANSLATIONS = {
   fr: {
     nav_apply: 'Postuler',
     nav_login: 'Connexion',
-    nav_portal: 'Portail',
+    nav_portal: 'Avantages',
     nav_directory: 'Annuaire',
     nav_admin: 'Mon Institution',
     nav_logout: 'Déconnexion',
@@ -388,7 +388,7 @@ const TRANSLATIONS = {
     hero_title: 'Réseau Mondial d\'Universités GAN',
     hero_subtitle: 'Nous connectons les établissements d\'enseignement supérieur pour partager des avantages, des connaissances et des opportunités pour les étudiants et les enseignants.',
     hero_cta: 'Postuler pour l\'adhésion',
-    hero_login: 'Accéder au portail',
+    hero_login: 'Accéder aux avantages',
 
     apply_title: 'Demande d\'Adhésion',
     apply_subtitle: 'Remplissez le formulaire. L\'IA évaluera votre candidature selon la rubrique GAN.',
@@ -466,7 +466,7 @@ const TRANSLATIONS = {
     admin_cancel: 'Annuler',
     admin_confirm_delete: 'Supprimer cet utilisateur ?',
 
-    portal_title: 'Portail des Avantages',
+    portal_title: 'Avantages GAN',
     portal_subtitle: 'Remises et avantages exclusifs pour les membres GAN.',
     portal_filter_all: 'Tous',
     portal_filter_software: 'Logiciels',
