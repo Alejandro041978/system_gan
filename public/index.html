@@ -22,8 +22,8 @@
     <a href="/" class="navbar-brand">GAN <span>System</span></a>
     <ul class="navbar-nav">
       <li><a href="/pages/instituciones.html">Instituciones</a></li>
-      <li><a href="/pages/postulacion.html" data-i18n="nav_apply"></a></li>
       <!-- Sin sesión -->
+      <li id="nav-apply-li"><a href="/pages/postulacion.html" data-i18n="nav_apply"></a></li>
       <li id="nav-login-li"><a href="/pages/login.html" data-i18n="nav_login"></a></li>
       <!-- Con sesión -->
       <li id="nav-portal-li" class="hidden"><a href="/pages/portal.html" data-i18n="nav_portal"></a></li>
@@ -119,6 +119,7 @@
   // Mostrar/ocultar nav según sesión
   const session = await Auth.getSession();
   if (session) {
+    document.getElementById('nav-apply-li').classList.add('hidden');
     document.getElementById('nav-login-li').classList.add('hidden');
     document.getElementById('nav-portal-li').classList.remove('hidden');
     document.getElementById('nav-dir-li').classList.remove('hidden');
