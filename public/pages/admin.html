@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GAN — Mi Institución</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <script>
+    window.__GAN_CONFIG__ = {
+      supabaseUrl:  'SUPABASE_URL_PLACEHOLDER',
+      supabaseAnon: 'SUPABASE_ANON_PLACEHOLDER'
+    };
+  </script>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="/" class="navbar-brand">GAN <span>Network</span></a>
+    <ul class="navbar-nav">
+      <li><a href="/pages/portal.html" data-i18n="nav_portal"></a></li>
+      <li><a href="/pages/directorio.html" data-i18n="nav_directory"></a></li>
+      <li><a href="/pages/admin.html" class="active" data-i18n="nav_admin"></a></li>
+      <li><button id="nav-logout-btn" class="btn btn-ghost btn-sm" data-i18n="nav_logout"></button></li>
+    </ul>
+    <div class="lang-switcher">
+      <button data-lang-btn="es">ES</button>
+      <button data-lang-btn="en">EN</button>
+      <button data-lang-btn="pt">PT</button>
+      <button data-lang-btn="fr">FR</button>
+    </div>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="container">
+    <h1 data-i18n="admin_title"></h1>
+    <p id="institution-name-header" style="color:var(--color-text-muted);"></p>
+  </div>
+</div>
+
+<div class="container" style="padding-bottom:3rem;">
+
+  <!-- INFO INSTITUCIÓN -->
+  <div class="card" style="margin-bottom:1.5rem;">
+    <div class="card-header">
+      <span class="card-title">🏛️ <span id="inst-name-card">—</span></span>
+      <span id="inst-country-badge" class="badge badge-info"></span>
+    </div>
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap:1rem;">
+      <div>
+        <div style="font-size:.75rem;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600;">País</div>
+        <div id="inst-country" style="font-weight:600;">—</div>
+      </div>
+      <div>
+        <div style="font-size:.75rem;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600;">Tipo</div>
+        <div id="inst-type" style="font-weight:600;">—</div>
+      </div>
+      <div>
+        <div style="font-size:.75rem;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600;">Estudiantes</div>
+        <div id="inst-students" style="font-weight:600;">—</div>
+      </div>
+      <div>
+        <div style="font-size:.75rem;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600;">Programas</div>
+        <div id="inst-programs" style="font-weight:600;">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GESTIÓN DE USUARIOS -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-title" data-i18n="admin_users_title"></div>
+        <div style="font-size:.85rem;color:var(--color-text-muted); margin-top:.2rem;">
+          <span data-i18n="admin_users_subtitle"></span>
+          — <span id="user-count">0</span> / 5
+        </div>
+      </div>
+      <button id="add-user-btn" class="btn btn-primary btn-sm" data-i18n="admin_add_user"></button>
+    </div>
+
+    <!-- Tabla de usuarios -->
+    <div class="users-table-wrap">
+      <table class="users-table">
+        <thead>
+          <tr>
+            <th>Usuario</th>
+            <th data-i18n="admin_email"></th>
+            <th data-i18n="admin_role_title"></th>
+            <th>Idioma</th>
+            <th>Directorio</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="users-tbody">
+          <tr>
+            <td colspan="6">
+              <div class="empty-state">
+                <div class="spinner dark" style="margin:0 auto;width:24px;height:24px;"></div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL: Agregar / Editar usuario -->
+<div class="modal-overlay" id="user-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-title" data-i18n="admin_add_user"></span>
+      <button class="modal-close" id="modal-close-btn">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="modal-user-id">
+      <div class="form-group">
+        <label class="form-label"><span data-i18n="admin_name"></span><span class="required">*</span></label>
+        <input type="text" id="modal-name" class="form-input">
+      </div>
+      <div class="form-group">
+        <label class="form-label"><span data-i18n="admin_email"></span><span class="required">*</span></label>
+        <input type="email" id="modal-email" class="form-input" id="modal-email">
+        <p class="form-hint">Se enviará una invitación a este correo.</p>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="admin_role_title"></label>
+        <input type="text" id="modal-role" class="form-input" placeholder="Ej: Coordinador de Intercambios">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Idioma preferido</label>
+        <select id="modal-lang" class="form-select">
+          <option value="es">Español</option>
+          <option value="en">English</option>
+          <option value="pt">Português</option>
+          <option value="fr">Français</option>
+        </select>
+      </div>
+      <div class="form-group" id="modal-visible-group" style="display:none;">
+        <label class="checkbox-item" style="width:auto; display:inline-flex;">
+          <input type="checkbox" id="modal-visible" checked>
+          <span>Visible en directorio público</span>
+        </label>
+      </div>
+      <div id="modal-error" style="display:none; color:var(--color-danger); font-size:.85rem; margin-top:.5rem;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="modal-cancel-btn" data-i18n="admin_cancel"></button>
+      <button class="btn btn-primary" id="modal-save-btn">
+        <span data-i18n="admin_save"></span>
+        <span class="spinner" id="modal-spinner" style="display:none;"></span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Confirmar eliminación -->
+<div class="modal-overlay" id="delete-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" data-i18n="admin_delete_user"></span>
+      <button class="modal-close" onclick="closeDeleteModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p data-i18n="admin_confirm_delete"></p>
+      <p id="delete-user-name" style="font-weight:700; margin-top:.5rem;"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeDeleteModal()" data-i18n="admin_cancel"></button>
+      <button class="btn btn-danger" id="confirm-delete-btn" data-i18n="admin_delete_user"></button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/js/i18n.js"></script>
+<script src="/js/supabase-client.js"></script>
+<script>
+let authToken = null;
+let users = [];
+let deleteUserId = null;
+let editMode = false;
+
+// ── Init ────────────────────────────────────────────────────────────
+(async () => {
+  const result = await Auth.requireAuth(['institution_admin', 'super_admin']);
+  if (!result) return;
+
+  const { data: { session } } = await db.auth.getSession();
+  authToken = session.access_token;
+
+  const profile = result.profile;
+  document.getElementById('institution-name-header').textContent =
+    profile.institutions?.name || '';
+
+  // Cargar info de institución
+  if (profile.institution_id) {
+    const { data: inst } = await db.from('institutions')
+      .select('*').eq('id', profile.institution_id).single();
+    if (inst) {
+      document.getElementById('inst-name-card').textContent    = inst.name;
+      document.getElementById('inst-country').textContent      = inst.country;
+      document.getElementById('inst-type').textContent         = inst.type;
+      document.getElementById('inst-students').textContent     = inst.student_count?.toLocaleString() || '—';
+      document.getElementById('inst-programs').textContent     = inst.programs || '—';
+      document.getElementById('inst-country-badge').textContent = inst.country;
+    }
+  }
+
+  await loadUsers();
+})();
+
+document.getElementById('nav-logout-btn').addEventListener('click', () => Auth.signOut());
+
+// ── Cargar usuarios ────────────────────────────────────────────────
+async function loadUsers() {
+  const res = await fetch('/api/users', {
+    headers: { 'Authorization': `Bearer ${authToken}` }
+  });
+  const data = await res.json();
+  users = data.users || [];
+
+  document.getElementById('user-count').textContent = users.length;
+  document.getElementById('add-user-btn').disabled = users.length >= 5;
+
+  renderUsers();
+}
+
+function renderUsers() {
+  const tbody = document.getElementById('users-tbody');
+  if (users.length === 0) {
+    tbody.innerHTML = `
+      <tr><td colspan="6">
+        <div class="empty-state">
+          <div class="empty-state-icon">👤</div>
+          <h3>Sin usuarios</h3>
+          <p>Agregue hasta 5 usuarios para su institución.</p>
+        </div>
+      </td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = users.map(u => `
+    <tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:.6rem;">
+          ${u.avatar_url
+            ? `<img src="${u.avatar_url}" class="user-avatar-sm" alt="">`
+            : `<div class="user-avatar-placeholder-sm">${u.full_name.charAt(0)}</div>`}
+          <span style="font-weight:600;">${u.full_name}</span>
+        </div>
+      </td>
+      <td>${u.email}</td>
+      <td>${u.role_title || '—'}</td>
+      <td><span class="badge badge-gray">${(u.preferred_lang || 'es').toUpperCase()}</span></td>
+      <td>
+        ${u.is_visible
+          ? '<span class="badge badge-success">✓ Visible</span>'
+          : '<span class="badge badge-gray">Oculto</span>'}
+      </td>
+      <td>
+        <div style="display:flex;gap:.4rem;justify-content:flex-end;">
+          <button class="btn btn-ghost btn-sm" onclick="openEditModal('${u.id}')" data-i18n="admin_edit_user" title="Editar">✏️</button>
+          <button class="btn btn-ghost btn-sm" onclick="openDeleteModal('${u.id}','${u.full_name}')" title="Eliminar">🗑️</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// ── Modal: Agregar ────────────────────────────────────────────────
+document.getElementById('add-user-btn').addEventListener('click', () => {
+  if (users.length >= 5) {
+    toast(I18n.t('admin_users_limit'), 'warning');
+    return;
+  }
+  editMode = false;
+  document.getElementById('modal-title').setAttribute('data-i18n', 'admin_add_user');
+  document.getElementById('modal-title').textContent = I18n.t('admin_add_user');
+  document.getElementById('modal-user-id').value = '';
+  document.getElementById('modal-name').value = '';
+  document.getElementById('modal-email').value = '';
+  document.getElementById('modal-email').disabled = false;
+  document.getElementById('modal-role').value = '';
+  document.getElementById('modal-lang').value = I18n.getLang();
+  document.getElementById('modal-visible-group').style.display = 'none';
+  document.getElementById('modal-error').style.display = 'none';
+  openModal('user-modal');
+});
+
+// ── Modal: Editar ─────────────────────────────────────────────────
+function openEditModal(userId) {
+  const user = users.find(u => u.id === userId);
+  if (!user) return;
+  editMode = true;
+  document.getElementById('modal-title').textContent = I18n.t('admin_edit_user');
+  document.getElementById('modal-user-id').value  = user.id;
+  document.getElementById('modal-name').value     = user.full_name;
+  document.getElementById('modal-email').value    = user.email;
+  document.getElementById('modal-email').disabled = true;
+  document.getElementById('modal-role').value     = user.role_title || '';
+  document.getElementById('modal-lang').value     = user.preferred_lang || 'es';
+  document.getElementById('modal-visible').checked = user.is_visible !== false;
+  document.getElementById('modal-visible-group').style.display = 'block';
+  document.getElementById('modal-error').style.display = 'none';
+  openModal('user-modal');
+}
+
+// ── Guardar ───────────────────────────────────────────────────────
+document.getElementById('modal-save-btn').addEventListener('click', async () => {
+  const name   = document.getElementById('modal-name').value.trim();
+  const email  = document.getElementById('modal-email').value.trim();
+  const role   = document.getElementById('modal-role').value.trim();
+  const lang   = document.getElementById('modal-lang').value;
+  const visible = document.getElementById('modal-visible').checked;
+  const errEl  = document.getElementById('modal-error');
+  const spin   = document.getElementById('modal-spinner');
+
+  if (!name || (!editMode && !email)) {
+    errEl.textContent = I18n.t('error_required');
+    errEl.style.display = 'block';
+    return;
+  }
+
+  document.getElementById('modal-save-btn').disabled = true;
+  spin.style.display = 'inline-block';
+  errEl.style.display = 'none';
+
+  try {
+    let res;
+    if (editMode) {
+      res = await fetch('/api/users', {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${authToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: document.getElementById('modal-user-id').value,
+          full_name: name, role_title: role, preferred_lang: lang, is_visible: visible
+        })
+      });
+    } else {
+      res = await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${authToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ full_name: name, email, role_title: role, preferred_lang: lang })
+      });
+    }
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Error');
+
+    closeModal('user-modal');
+    toast(editMode ? 'Usuario actualizado.' : 'Invitación enviada al correo.', 'success');
+    await loadUsers();
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.style.display = 'block';
+  } finally {
+    document.getElementById('modal-save-btn').disabled = false;
+    spin.style.display = 'none';
+  }
+});
+
+// ── Eliminar ──────────────────────────────────────────────────────
+function openDeleteModal(userId, userName) {
+  deleteUserId = userId;
+  document.getElementById('delete-user-name').textContent = userName;
+  openModal('delete-modal');
+}
+
+function closeDeleteModal() { closeModal('delete-modal'); }
+
+document.getElementById('confirm-delete-btn').addEventListener('click', async () => {
+  if (!deleteUserId) return;
+  const btn = document.getElementById('confirm-delete-btn');
+  btn.disabled = true;
+
+  const res = await fetch('/api/users', {
+    method: 'DELETE',
+    headers: { 'Authorization': `Bearer ${authToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ user_id: deleteUserId })
+  });
+
+  if (res.ok) {
+    toast('Usuario eliminado.', 'success');
+    closeDeleteModal();
+    await loadUsers();
+  } else {
+    const d = await res.json();
+    toast(d.error || I18n.t('error_generic'), 'error');
+  }
+  btn.disabled = false;
+});
+
+// ── Helpers UI ────────────────────────────────────────────────────
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+document.getElementById('modal-close-btn').addEventListener('click',  () => closeModal('user-modal'));
+document.getElementById('modal-cancel-btn').addEventListener('click', () => closeModal('user-modal'));
+
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) closeModal(overlay.id);
+  });
+});
+
+function toast(msg, type = 'info') {
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.textContent = msg;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+</script>
+</body>
+</html>

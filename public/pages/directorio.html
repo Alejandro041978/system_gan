@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GAN — Directorio de Miembros</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <script>
+    window.__GAN_CONFIG__ = {
+      supabaseUrl:  'SUPABASE_URL_PLACEHOLDER',
+      supabaseAnon: 'SUPABASE_ANON_PLACEHOLDER'
+    };
+  </script>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="/" class="navbar-brand">GAN <span>Network</span></a>
+    <ul class="navbar-nav">
+      <li><a href="/pages/portal.html" data-i18n="nav_portal"></a></li>
+      <li><a href="/pages/directorio.html" class="active" data-i18n="nav_directory"></a></li>
+      <li id="nav-admin-li" style="display:none;"><a href="/pages/admin.html" data-i18n="nav_admin"></a></li>
+      <li><button id="nav-logout-btn" class="btn btn-ghost btn-sm" data-i18n="nav_logout"></button></li>
+    </ul>
+    <div class="lang-switcher">
+      <button data-lang-btn="es">ES</button>
+      <button data-lang-btn="en">EN</button>
+      <button data-lang-btn="pt">PT</button>
+      <button data-lang-btn="fr">FR</button>
+    </div>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="container">
+    <h1 data-i18n="dir_title"></h1>
+    <p data-i18n="dir_subtitle"></p>
+  </div>
+</div>
+
+<div class="container" style="padding-bottom:3rem;">
+
+  <!-- Barra de búsqueda y filtros -->
+  <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:1.5rem; align-items:center;">
+    <input type="text" id="search-input" class="form-input" placeholder="Buscar por nombre, cargo..." style="max-width:280px;">
+    <select id="filter-country" class="form-select" style="max-width:200px;">
+      <option value="" data-i18n="dir_all_countries"></option>
+    </select>
+    <select id="filter-institution" class="form-select" style="max-width:240px;">
+      <option value="" data-i18n="dir_all_institutions"></option>
+    </select>
+    <span id="results-count" style="color:var(--color-text-muted);font-size:.875rem;margin-left:auto;"></span>
+  </div>
+
+  <!-- Grid de miembros -->
+  <div id="directory-grid" class="directory-grid">
+    <!-- Skeletons -->
+    ${[1,2,3,4,5,6,8].map(() => `
+      <div class="member-card" style="opacity:.4;pointer-events:none;">
+        <div class="member-avatar-placeholder" style="background:#e2e8f0;color:transparent;">X</div>
+        <div style="height:14px;background:#e2e8f0;border-radius:4px;width:60%;margin:0 auto .4rem;"></div>
+        <div style="height:10px;background:#e2e8f0;border-radius:4px;width:80%;margin:0 auto .3rem;"></div>
+        <div style="height:10px;background:#e2e8f0;border-radius:4px;width:50%;margin:0 auto;"></div>
+      </div>
+    `).join('')}
+  </div>
+
+  <div id="empty-dir" class="empty-state" style="display:none;">
+    <div class="empty-state-icon">🔍</div>
+    <h3 data-i18n="dir_no_results"></h3>
+  </div>
+
+</div>
+
+<!-- MODAL: Perfil de miembro -->
+<div class="modal-overlay" id="member-modal">
+  <div class="modal" style="max-width:460px;">
+    <div class="modal-header">
+      <span class="modal-title" id="member-modal-name"></span>
+      <button class="modal-close" onclick="document.getElementById('member-modal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body" style="text-align:center;">
+      <div id="member-modal-avatar" style="margin-bottom:1rem;"></div>
+      <div id="member-modal-role"  style="color:var(--color-text-muted);font-size:.875rem;"></div>
+      <div id="member-modal-institution" style="color:var(--color-primary);font-weight:600;font-size:.9rem;margin:.25rem 0 1rem;"></div>
+      <div id="member-modal-bio"   style="font-size:.875rem;color:var(--color-text-muted);margin-bottom:1.25rem;"></div>
+      <div id="member-modal-actions" style="display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap;"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/js/i18n.js"></script>
+<script src="/js/supabase-client.js"></script>
+<script>
+let allMembers = [];
+
+(async () => {
+  const result = await Auth.requireAuth();
+  if (!result) return;
+
+  const profile = result.profile;
+  if (profile?.app_role === 'institution_admin' || profile?.app_role === 'super_admin') {
+    document.getElementById('nav-admin-li').style.display = '';
+  }
+
+  document.getElementById('nav-logout-btn').addEventListener('click', () => Auth.signOut());
+
+  await loadDirectory();
+
+  // Búsqueda y filtros
+  ['search-input','filter-country','filter-institution'].forEach(id => {
+    document.getElementById(id).addEventListener('input', applyFilters);
+    document.getElementById(id).addEventListener('change', applyFilters);
+  });
+})();
+
+async function loadDirectory() {
+  const { data, error } = await db
+    .from('profiles')
+    .select('id, full_name, role_title, email, phone, avatar_url, bio, linkedin_url, preferred_lang, institution_id, institutions(id, name, country)')
+    .eq('is_visible', true)
+    .order('full_name');
+
+  if (error) { console.error(error); return; }
+
+  allMembers = data || [];
+
+  // Poblar filtros
+  const countries     = [...new Set(allMembers.map(m => m.institutions?.country).filter(Boolean))].sort();
+  const institutions  = [...new Map(allMembers.map(m => [m.institution_id, m.institutions?.name])).entries()]
+    .filter(([id, name]) => id && name).sort((a,b) => a[1].localeCompare(b[1]));
+
+  const cSelect = document.getElementById('filter-country');
+  countries.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c; opt.textContent = c;
+    cSelect.appendChild(opt);
+  });
+
+  const iSelect = document.getElementById('filter-institution');
+  institutions.forEach(([id, name]) => {
+    const opt = document.createElement('option');
+    opt.value = id; opt.textContent = name;
+    iSelect.appendChild(opt);
+  });
+
+  renderMembers(allMembers);
+}
+
+function applyFilters() {
+  const search  = document.getElementById('search-input').value.toLowerCase();
+  const country = document.getElementById('filter-country').value;
+  const instId  = document.getElementById('filter-institution').value;
+
+  const filtered = allMembers.filter(m => {
+    const matchSearch = !search
+      || m.full_name?.toLowerCase().includes(search)
+      || m.role_title?.toLowerCase().includes(search)
+      || m.institutions?.name?.toLowerCase().includes(search);
+    const matchCountry = !country || m.institutions?.country === country;
+    const matchInst    = !instId  || m.institution_id === instId;
+    return matchSearch && matchCountry && matchInst;
+  });
+
+  renderMembers(filtered);
+}
+
+function renderMembers(members) {
+  const grid  = document.getElementById('directory-grid');
+  const empty = document.getElementById('empty-dir');
+  const count = document.getElementById('results-count');
+
+  count.textContent = `${members.length} miembro${members.length !== 1 ? 's' : ''}`;
+
+  if (members.length === 0) {
+    grid.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  grid.innerHTML = members.map(m => {
+    const initials = m.full_name?.split(' ').map(n => n[0]).slice(0,2).join('') || '?';
+    const avatarHTML = m.avatar_url
+      ? `<img src="${m.avatar_url}" class="member-avatar" alt="${m.full_name}">`
+      : `<div class="member-avatar-placeholder">${initials}</div>`;
+
+    return `
+      <div class="member-card" onclick="openMemberModal('${m.id}')" style="cursor:pointer;">
+        ${avatarHTML}
+        <div class="member-name">${m.full_name}</div>
+        <div class="member-role">${m.role_title || '—'}</div>
+        <div class="member-institution">${m.institutions?.name || ''}</div>
+        ${m.institutions?.country ? `<div style="font-size:.75rem;color:var(--color-text-muted);margin-top:.2rem;">🌍 ${m.institutions.country}</div>` : ''}
+        <div class="member-actions" style="margin-top:.75rem;">
+          ${m.email    ? `<a href="mailto:${m.email}" class="btn btn-outline btn-sm" onclick="event.stopPropagation()" data-i18n="dir_contact" title="${m.email}">✉️</a>` : ''}
+          ${m.linkedin_url ? `<a href="${m.linkedin_url}" target="_blank" rel="noopener" class="btn btn-ghost btn-sm" onclick="event.stopPropagation()">LinkedIn</a>` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function openMemberModal(memberId) {
+  const m = allMembers.find(x => x.id === memberId);
+  if (!m) return;
+
+  const initials = m.full_name?.split(' ').map(n => n[0]).slice(0,2).join('') || '?';
+  document.getElementById('member-modal-name').textContent = m.full_name;
+  document.getElementById('member-modal-avatar').innerHTML = m.avatar_url
+    ? `<img src="${m.avatar_url}" style="width:90px;height:90px;border-radius:50%;object-fit:cover;margin:0 auto;" alt="">`
+    : `<div style="width:90px;height:90px;border-radius:50%;background:var(--color-primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;margin:0 auto;">${initials}</div>`;
+  document.getElementById('member-modal-role').textContent        = m.role_title || '';
+  document.getElementById('member-modal-institution').textContent = m.institutions?.name + (m.institutions?.country ? ` · ${m.institutions.country}` : '');
+  document.getElementById('member-modal-bio').textContent         = m.bio || '';
+
+  const actions = document.getElementById('member-modal-actions');
+  actions.innerHTML = '';
+  if (m.email) {
+    const a = document.createElement('a');
+    a.href = `mailto:${m.email}`;
+    a.className = 'btn btn-primary btn-sm';
+    a.textContent = `✉️ ${I18n.t('dir_contact')}`;
+    actions.appendChild(a);
+  }
+  if (m.phone) {
+    const a = document.createElement('a');
+    a.href = `tel:${m.phone}`;
+    a.className = 'btn btn-outline btn-sm';
+    a.textContent = `📞 ${m.phone}`;
+    actions.appendChild(a);
+  }
+  if (m.linkedin_url) {
+    const a = document.createElement('a');
+    a.href = m.linkedin_url;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.className = 'btn btn-ghost btn-sm';
+    a.textContent = `LinkedIn ↗`;
+    actions.appendChild(a);
+  }
+
+  document.getElementById('member-modal').classList.add('open');
+}
+
+document.getElementById('member-modal').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('member-modal')) {
+    document.getElementById('member-modal').classList.remove('open');
+  }
+});
+</script>
+</body>
+</html>

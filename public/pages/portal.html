@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GAN — Portal de Beneficios</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    .copy-btn {
+      background: none; border: none; cursor: pointer;
+      color: var(--color-primary); font-size: .85rem;
+      font-weight: 600; padding: .2rem .5rem;
+    }
+    .copy-btn:hover { text-decoration: underline; }
+  </style>
+  <script>
+    window.__GAN_CONFIG__ = {
+      supabaseUrl:  'SUPABASE_URL_PLACEHOLDER',
+      supabaseAnon: 'SUPABASE_ANON_PLACEHOLDER'
+    };
+  </script>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="/" class="navbar-brand">GAN <span>Network</span></a>
+    <ul class="navbar-nav">
+      <li><a href="/pages/portal.html" class="active" data-i18n="nav_portal"></a></li>
+      <li><a href="/pages/directorio.html" data-i18n="nav_directory"></a></li>
+      <li id="nav-admin-li" style="display:none;"><a href="/pages/admin.html" data-i18n="nav_admin"></a></li>
+      <li><button id="nav-logout-btn" class="btn btn-ghost btn-sm" data-i18n="nav_logout"></button></li>
+    </ul>
+    <div class="lang-switcher">
+      <button data-lang-btn="es">ES</button>
+      <button data-lang-btn="en">EN</button>
+      <button data-lang-btn="pt">PT</button>
+      <button data-lang-btn="fr">FR</button>
+    </div>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="container">
+    <h1 data-i18n="portal_title"></h1>
+    <p data-i18n="portal_subtitle"></p>
+  </div>
+</div>
+
+<div class="container" style="padding-bottom:3rem;">
+
+  <!-- Filtros por categoría -->
+  <div class="filters-bar" id="filters-bar">
+    <button class="filter-chip active" data-cat="all"        data-i18n="portal_filter_all"></button>
+    <button class="filter-chip"        data-cat="software"   data-i18n="portal_filter_software"></button>
+    <button class="filter-chip"        data-cat="courses"    data-i18n="portal_filter_courses"></button>
+    <button class="filter-chip"        data-cat="travel"     data-i18n="portal_filter_travel"></button>
+    <button class="filter-chip"        data-cat="books"      data-i18n="portal_filter_books"></button>
+    <button class="filter-chip"        data-cat="events"     data-i18n="portal_filter_events"></button>
+    <button class="filter-chip"        data-cat="other"      data-i18n="portal_filter_other"></button>
+  </div>
+
+  <!-- Grid de beneficios -->
+  <div id="benefits-grid" class="benefits-grid">
+    <!-- skeleton -->
+    ${[1,2,3,4,5,6].map(() => `
+      <div class="benefit-card" style="opacity:.4;pointer-events:none;">
+        <div class="benefit-header">
+          <div class="benefit-logo-placeholder" style="background:#e2e8f0;"></div>
+          <div style="flex:1;">
+            <div style="height:10px;background:#e2e8f0;border-radius:4px;width:60%;margin-bottom:.4rem;"></div>
+            <div style="height:14px;background:#e2e8f0;border-radius:4px;width:80%;"></div>
+          </div>
+          <div style="width:60px;height:40px;background:#e2e8f0;border-radius:6px;"></div>
+        </div>
+        <div class="benefit-body">
+          <div style="height:10px;background:#e2e8f0;border-radius:4px;margin-bottom:.5rem;"></div>
+          <div style="height:10px;background:#e2e8f0;border-radius:4px;width:70%;"></div>
+        </div>
+      </div>
+    `).join('')}
+  </div>
+
+  <!-- Empty state -->
+  <div id="empty-benefits" class="empty-state" style="display:none;">
+    <div class="empty-state-icon">🎁</div>
+    <h3>Sin beneficios</h3>
+    <p>No hay beneficios disponibles en esta categoría.</p>
+  </div>
+
+</div>
+
+<!-- MODAL: Código de beneficio -->
+<div class="modal-overlay" id="code-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="code-modal-title"></span>
+      <button class="modal-close" onclick="document.getElementById('code-modal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body" style="text-align:center;">
+      <p id="code-modal-provider" style="color:var(--color-text-muted);font-size:.875rem;margin-bottom:1rem;"></p>
+
+      <div id="code-display" style="display:none;">
+        <p style="font-size:.875rem;color:var(--color-text-muted);margin-bottom:.5rem;" data-i18n="portal_code_label"></p>
+        <div style="display:flex;align-items:center;justify-content:center;gap:.5rem;background:#f8fafc;border:2px dashed var(--color-primary);border-radius:var(--radius);padding:1rem 1.5rem;margin-bottom:1rem;">
+          <span id="code-value" style="font-family:'Courier New',monospace;font-size:1.4rem;font-weight:800;letter-spacing:.1em;color:var(--color-primary);"></span>
+          <button class="copy-btn" onclick="copyCode()" title="Copiar">📋</button>
+        </div>
+      </div>
+
+      <div id="link-display" style="display:none; margin-bottom:1rem;">
+        <a id="benefit-link" href="#" target="_blank" rel="noopener" class="btn btn-primary" style="display:inline-flex;" data-i18n="portal_link_label"></a>
+      </div>
+
+      <p id="already-claimed-msg" style="display:none;color:var(--color-text-muted);font-size:.85rem;margin-bottom:.75rem;">
+        ✅ <span data-i18n="portal_claimed"></span>
+      </p>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/js/i18n.js"></script>
+<script src="/js/supabase-client.js"></script>
+<script>
+let authToken = null;
+let allBenefits = [];
+let currentCategory = 'all';
+
+const CATEGORY_ICONS = {
+  software: '💻', courses: '📚', travel: '✈️',
+  books: '📖', events: '🎟️', other: '🎁'
+};
+
+(async () => {
+  const result = await Auth.requireAuth();
+  if (!result) return;
+
+  const { data: { session } } = await db.auth.getSession();
+  authToken = session.access_token;
+
+  const profile = await Auth.getProfile();
+  if (profile?.app_role === 'institution_admin' || profile?.app_role === 'super_admin') {
+    document.getElementById('nav-admin-li').style.display = '';
+  }
+
+  document.getElementById('nav-logout-btn').addEventListener('click', () => Auth.signOut());
+
+  await loadBenefits();
+
+  // Filtros
+  document.querySelectorAll('.filter-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentCategory = btn.dataset.cat;
+      renderBenefits(currentCategory === 'all'
+        ? allBenefits
+        : allBenefits.filter(b => b.category === currentCategory));
+    });
+  });
+
+  // Recargar al cambiar idioma
+  document.querySelectorAll('[data-lang-btn]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      await loadBenefits();
+    });
+  });
+})();
+
+async function loadBenefits() {
+  const lang = I18n.getLang();
+  const res = await fetch(`/api/benefits?lang=${lang}`, {
+    headers: { 'Authorization': `Bearer ${authToken}` }
+  });
+  if (!res.ok) return;
+  const data = await res.json();
+  allBenefits = data.benefits || [];
+  renderBenefits(currentCategory === 'all'
+    ? allBenefits
+    : allBenefits.filter(b => b.category === currentCategory));
+}
+
+function renderBenefits(benefits) {
+  const grid  = document.getElementById('benefits-grid');
+  const empty = document.getElementById('empty-benefits');
+
+  if (benefits.length === 0) {
+    grid.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  grid.innerHTML = benefits.map(b => {
+    const icon = CATEGORY_ICONS[b.category] || '🎁';
+    const logoHTML = b.provider_logo
+      ? `<img src="${b.provider_logo}" class="benefit-logo" alt="${b.provider_name}">`
+      : `<div class="benefit-logo-placeholder">${icon}</div>`;
+
+    const discountHTML = b.discount_pct
+      ? `<div class="benefit-discount">-${b.discount_pct}%</div>`
+      : '';
+
+    const expiresHTML = b.valid_until
+      ? `<span class="badge badge-warning">${I18n.t('portal_expires')}: ${new Date(b.valid_until).toLocaleDateString(I18n.getLang())}</span>`
+      : '';
+
+    const availHTML = b.available !== null
+      ? `<span class="badge badge-info">${b.available} ${I18n.t('portal_available')}</span>`
+      : `<span class="badge badge-gray">${I18n.t('portal_unlimited')}</span>`;
+
+    const claimedBadge = b.claimed
+      ? `<span class="badge badge-success" style="margin-bottom:.5rem;">✓ ${I18n.t('portal_claimed')}</span>`
+      : '';
+
+    const btnClass = b.claimed ? 'btn-ghost' : 'btn-primary';
+    const btnText  = b.claimed ? I18n.t('portal_claimed') : I18n.t('portal_claim');
+
+    return `
+      <div class="benefit-card" data-id="${b.id}">
+        <div class="benefit-header">
+          ${logoHTML}
+          <div style="flex:1;min-width:0;">
+            <div class="benefit-provider">${b.provider_name}</div>
+            <div class="benefit-title">${b.title}</div>
+          </div>
+          ${discountHTML}
+        </div>
+        <div class="benefit-body">
+          <p class="benefit-description">${b.description}</p>
+          <div class="benefit-meta">
+            ${expiresHTML}
+            ${availHTML}
+          </div>
+          ${claimedBadge}
+          <button class="btn ${btnClass} btn-sm" style="width:100%;justify-content:center;"
+            onclick="claimBenefit('${b.id}')" ${b.available === 0 ? 'disabled' : ''}>
+            ${btnText}
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function claimBenefit(benefitId) {
+  const benefit = allBenefits.find(b => b.id === benefitId);
+  if (!benefit) return;
+
+  // Si ya está canjeado solo mostramos el modal
+  if (benefit.claimed) {
+    showCodeModal(benefit, true);
+    return;
+  }
+
+  // Canjear
+  const btn = document.querySelector(`.benefit-card[data-id="${benefitId}"] button`);
+  if (btn) { btn.disabled = true; btn.textContent = '...'; }
+
+  const res = await fetch('/api/benefits', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${authToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ benefit_id: benefitId })
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    toast(data.error || I18n.t('error_generic'), 'error');
+    if (btn) { btn.disabled = false; btn.textContent = I18n.t('portal_claim'); }
+    return;
+  }
+
+  // Marcar como canjeado localmente
+  benefit.claimed = true;
+  benefit.code    = data.code;
+  benefit.link    = data.link;
+
+  showCodeModal(benefit, data.already_claimed || false);
+  renderBenefits(currentCategory === 'all'
+    ? allBenefits
+    : allBenefits.filter(b => b.category === currentCategory));
+}
+
+function showCodeModal(benefit, alreadyClaimed) {
+  document.getElementById('code-modal-title').textContent    = benefit.title;
+  document.getElementById('code-modal-provider').textContent = benefit.provider_name;
+
+  const codeDisplay  = document.getElementById('code-display');
+  const linkDisplay  = document.getElementById('link-display');
+  const alreadyEl   = document.getElementById('already-claimed-msg');
+
+  alreadyEl.style.display = alreadyClaimed ? 'block' : 'none';
+
+  if (benefit.code) {
+    document.getElementById('code-value').textContent = benefit.code;
+    codeDisplay.style.display = 'block';
+  } else {
+    codeDisplay.style.display = 'none';
+  }
+
+  if (benefit.link) {
+    document.getElementById('benefit-link').href = benefit.link;
+    linkDisplay.style.display = 'block';
+  } else {
+    linkDisplay.style.display = 'none';
+  }
+
+  document.getElementById('code-modal').classList.add('open');
+}
+
+function copyCode() {
+  const code = document.getElementById('code-value').textContent;
+  navigator.clipboard.writeText(code).then(() => toast('Código copiado ✓', 'success'));
+}
+
+function toast(msg, type = 'info') {
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.textContent = msg;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+
+document.getElementById('code-modal').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('code-modal')) {
+    document.getElementById('code-modal').classList.remove('open');
+  }
+});
+</script>
+</body>
+</html>

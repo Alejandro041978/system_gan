@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GAN — Postulación</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <script>
+    window.__GAN_CONFIG__ = {
+      supabaseUrl:  'SUPABASE_URL_PLACEHOLDER',
+      supabaseAnon: 'SUPABASE_ANON_PLACEHOLDER'
+    };
+  </script>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="/" class="navbar-brand">GAN <span>Network</span></a>
+    <ul class="navbar-nav">
+      <li><a href="/pages/postulacion.html" class="active" data-i18n="nav_apply"></a></li>
+      <li><a href="/pages/login.html" data-i18n="nav_login"></a></li>
+    </ul>
+    <div class="lang-switcher">
+      <button data-lang-btn="es">ES</button>
+      <button data-lang-btn="en">EN</button>
+      <button data-lang-btn="pt">PT</button>
+      <button data-lang-btn="fr">FR</button>
+    </div>
+  </div>
+</nav>
+
+<!-- HEADER -->
+<div class="page-header">
+  <div class="container">
+    <h1 data-i18n="apply_title"></h1>
+    <p data-i18n="apply_subtitle"></p>
+  </div>
+</div>
+
+<div class="container" style="padding-bottom: 3rem;">
+  <div style="max-width: 800px; margin: 0 auto;">
+
+    <!-- RÚBRICA -->
+    <div class="rubric-box">
+      <h3 data-i18n="rubric_title"></h3>
+      <div class="rubric-items">
+        <div class="rubric-item">
+          <span class="rubric-item-label" data-i18n="rubric_accreditation"></span>
+          <span class="rubric-badge">40 pts</span>
+        </div>
+        <div class="rubric-item">
+          <span class="rubric-item-label" data-i18n="rubric_motivation"></span>
+          <span class="rubric-badge">30 pts</span>
+        </div>
+        <div class="rubric-item">
+          <span class="rubric-item-label" data-i18n="rubric_institution"></span>
+          <span class="rubric-badge">20 pts</span>
+        </div>
+        <div class="rubric-item">
+          <span class="rubric-item-label" data-i18n="rubric_contact"></span>
+          <span class="rubric-badge">10 pts</span>
+        </div>
+      </div>
+      <p class="rubric-min" data-i18n="rubric_min_score"></p>
+    </div>
+
+    <!-- FORMULARIO -->
+    <form id="application-form" novalidate>
+
+      <!-- Sección 1: Institución -->
+      <div class="form-section">
+        <div class="form-section-title">
+          <div class="icon">1</div>
+          <span data-i18n="section_institution"></span>
+        </div>
+        <div class="form-row">
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label class="form-label" for="inst_name">
+              <span data-i18n="field_inst_name"></span><span class="required">*</span>
+            </label>
+            <input type="text" id="inst_name" name="inst_name" class="form-input" required>
+            <div class="form-error" id="err_inst_name" data-i18n="error_required"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="country">
+              <span data-i18n="field_country"></span><span class="required">*</span>
+            </label>
+            <input type="text" id="country" name="country" class="form-input" required>
+            <div class="form-error" id="err_country" data-i18n="error_required"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="inst_type">
+              <span data-i18n="field_inst_type"></span><span class="required">*</span>
+            </label>
+            <select id="inst_type" name="inst_type" class="form-select" required>
+              <option value="">—</option>
+              <option value="university" data-i18n="type_university">Universidad</option>
+              <option value="institute"  data-i18n="type_institute">Instituto</option>
+              <option value="college"    data-i18n="type_college">Colegio universitario</option>
+              <option value="other"      data-i18n="type_other">Otro</option>
+            </select>
+            <div class="form-error" id="err_inst_type" data-i18n="error_required"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="website"><span data-i18n="field_website"></span></label>
+            <input type="url" id="website" name="website" class="form-input" placeholder="https://">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="founded_year"><span data-i18n="field_founded"></span></label>
+            <input type="number" id="founded_year" name="founded_year" class="form-input" min="1800" max="2025">
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección 2: Contacto -->
+      <div class="form-section">
+        <div class="form-section-title">
+          <div class="icon">2</div>
+          <span data-i18n="section_contact"></span>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="contact_name">
+              <span data-i18n="field_contact_name"></span><span class="required">*</span>
+            </label>
+            <input type="text" id="contact_name" name="contact_name" class="form-input" required>
+            <div class="form-error" id="err_contact_name" data-i18n="error_required"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="contact_role">
+              <span data-i18n="field_contact_role"></span><span class="required">*</span>
+            </label>
+            <input type="text" id="contact_role" name="contact_role" class="form-input" required>
+            <div class="form-error" id="err_contact_role" data-i18n="error_required"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="contact_email">
+              <span data-i18n="field_contact_email"></span><span class="required">*</span>
+            </label>
+            <input type="email" id="contact_email" name="contact_email" class="form-input" required>
+            <div class="form-error" id="err_contact_email" data-i18n="error_email"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="contact_phone"><span data-i18n="field_contact_phone"></span></label>
+            <input type="tel" id="contact_phone" name="contact_phone" class="form-input">
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección 3: Métricas -->
+      <div class="form-section">
+        <div class="form-section-title">
+          <div class="icon">3</div>
+          <span data-i18n="section_metrics"></span>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="student_count"><span data-i18n="field_students"></span></label>
+            <input type="number" id="student_count" name="student_count" class="form-input" min="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="programs_count"><span data-i18n="field_programs"></span></label>
+            <input type="number" id="programs_count" name="programs_count" class="form-input" min="0">
+          </div>
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label class="form-label" for="accreditations">
+              <span data-i18n="field_accreditations"></span><span class="required">*</span>
+            </label>
+            <textarea id="accreditations" name="accreditations" class="form-textarea" rows="3" required></textarea>
+            <div class="form-error" id="err_accreditations" data-i18n="error_required"></div>
+            <p class="form-hint">Ej: AACSB, ABET, acreditación nacional, ISO, etc.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección 4: Motivación -->
+      <div class="form-section">
+        <div class="form-section-title">
+          <div class="icon">4</div>
+          <span data-i18n="section_motivation"></span>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="motivation">
+            <span data-i18n="field_motivation"></span><span class="required">*</span>
+          </label>
+          <textarea id="motivation" name="motivation" class="form-textarea" rows="5" required></textarea>
+          <div class="form-error" id="err_motivation" data-i18n="error_required"></div>
+          <p class="form-hint" id="motivation-counter">0 / 200 caracteres mínimo</p>
+        </div>
+      </div>
+
+      <!-- Sección 5: Actividades -->
+      <div class="form-section">
+        <div class="form-section-title">
+          <div class="icon">5</div>
+          <span data-i18n="section_activities"></span>
+        </div>
+        <div class="checkbox-grid" id="activities-grid">
+          <label class="checkbox-item">
+            <input type="checkbox" name="activities" value="teacher_exchange">
+            <span data-i18n="act_teacher_exchange"></span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="activities" value="student_exchange">
+            <span data-i18n="act_student_exchange"></span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="activities" value="language_courses">
+            <span data-i18n="act_language_courses"></span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="activities" value="certifications">
+            <span data-i18n="act_certifications"></span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="activities" value="scholarships">
+            <span data-i18n="act_scholarships"></span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="activities" value="study_trips">
+            <span data-i18n="act_study_trips"></span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="activities" value="dual_degree">
+            <span data-i18n="act_dual_degree"></span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="activities" value="credit_transfer">
+            <span data-i18n="act_credit_transfer"></span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" name="activities" value="other">
+            <span data-i18n="act_other"></span>
+          </label>
+        </div>
+        <div class="form-error" id="err_activities" style="margin-top:.5rem;">Seleccione al menos una actividad.</div>
+      </div>
+
+      <!-- SUBMIT -->
+      <div style="text-align:center; margin-top:1.5rem;">
+        <button type="submit" id="submit-btn" class="btn btn-primary btn-lg">
+          <span id="submit-text" data-i18n="btn_submit"></span>
+          <span class="spinner" id="submit-spinner" style="display:none;"></span>
+        </button>
+      </div>
+    </form>
+
+    <!-- RESULTADO IA -->
+    <div id="result-box" style="display:none;"></div>
+
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-container" id="toast-container"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/js/i18n.js"></script>
+<script src="/js/supabase-client.js"></script>
+<script>
+// ============================================================
+// Formulario de postulación
+// ============================================================
+
+// Contador de motivación
+const motivationField = document.getElementById('motivation');
+const motivationCounter = document.getElementById('motivation-counter');
+motivationField.addEventListener('input', () => {
+  const len = motivationField.value.length;
+  motivationCounter.textContent = `${len} / 200 ${I18n.getLang() === 'es' ? 'caracteres mínimo' : 'min characters'}`;
+  motivationCounter.style.color = len >= 200 ? 'var(--color-success)' : 'var(--color-text-muted)';
+});
+
+// Validación
+function validateForm() {
+  let valid = true;
+
+  const required = [
+    { id: 'inst_name',    err: 'err_inst_name' },
+    { id: 'country',      err: 'err_country' },
+    { id: 'inst_type',    err: 'err_inst_type' },
+    { id: 'contact_name', err: 'err_contact_name' },
+    { id: 'contact_role', err: 'err_contact_role' },
+    { id: 'accreditations', err: 'err_accreditations' },
+    { id: 'motivation',   err: 'err_motivation' },
+  ];
+
+  required.forEach(({ id, err }) => {
+    const el = document.getElementById(id);
+    const errEl = document.getElementById(err);
+    if (!el.value.trim()) {
+      el.classList.add('error');
+      errEl.classList.add('visible');
+      valid = false;
+    } else {
+      el.classList.remove('error');
+      errEl.classList.remove('visible');
+    }
+  });
+
+  // Email
+  const email = document.getElementById('contact_email');
+  const emailErr = document.getElementById('err_contact_email');
+  const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRe.test(email.value)) {
+    email.classList.add('error');
+    emailErr.classList.add('visible');
+    valid = false;
+  } else {
+    email.classList.remove('error');
+    emailErr.classList.remove('visible');
+  }
+
+  // Motivación mínima
+  if (motivationField.value.trim().length < 100) {
+    motivationField.classList.add('error');
+    document.getElementById('err_motivation').classList.add('visible');
+    valid = false;
+  }
+
+  // Actividades
+  const checked = document.querySelectorAll('input[name="activities"]:checked');
+  const actErr = document.getElementById('err_activities');
+  if (checked.length === 0) {
+    actErr.classList.add('visible');
+    valid = false;
+  } else {
+    actErr.classList.remove('visible');
+  }
+
+  return valid;
+}
+
+// Mostrar resultado
+function showResult(data) {
+  const box = document.getElementById('result-box');
+  const { decision, score, breakdown, justification } = data;
+
+  const icons = { approved: '✅', rejected: '❌', review: '⏳' };
+  const titleKey = `result_${decision}_title`;
+  const msgKey   = `result_${decision}_msg`;
+
+  const breakdownHTML = breakdown ? `
+    <div class="score-breakdown">
+      <div class="score-item">
+        <div class="score-item-label">${I18n.t('rubric_accreditation')}</div>
+        <div class="score-item-value">${breakdown.accreditation ?? '—'}<small>/40</small></div>
+      </div>
+      <div class="score-item">
+        <div class="score-item-label">${I18n.t('rubric_motivation')}</div>
+        <div class="score-item-value">${breakdown.motivation ?? '—'}<small>/30</small></div>
+      </div>
+      <div class="score-item">
+        <div class="score-item-label">${I18n.t('rubric_institution')}</div>
+        <div class="score-item-value">${breakdown.institution ?? '—'}<small>/20</small></div>
+      </div>
+      <div class="score-item">
+        <div class="score-item-label">${I18n.t('rubric_contact')}</div>
+        <div class="score-item-value">${breakdown.contact ?? '—'}<small>/10</small></div>
+      </div>
+    </div>
+  ` : '';
+
+  box.innerHTML = `
+    <div class="result-box ${decision}">
+      <div class="result-icon">${icons[decision]}</div>
+      <div class="result-title">${I18n.t(titleKey)}</div>
+      <p>${I18n.t(msgKey)}</p>
+      ${score !== undefined ? `<div class="result-score">${score}<small style="font-size:1.2rem">/100</small></div>` : ''}
+      <p style="font-size:.8rem;color:var(--color-text-muted)">${I18n.t('result_score')}</p>
+      ${breakdownHTML}
+      ${justification ? `<div class="result-justification">${justification}</div>` : ''}
+    </div>
+  `;
+  box.style.display = 'block';
+  box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// Toast
+function toast(msg, type = 'info') {
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.textContent = msg;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(() => el.remove(), 4500);
+}
+
+// Submit
+document.getElementById('application-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!validateForm()) return;
+
+  const btn  = document.getElementById('submit-btn');
+  const text = document.getElementById('submit-text');
+  const spin = document.getElementById('submit-spinner');
+
+  btn.disabled = true;
+  text.setAttribute('data-i18n', 'btn_submitting');
+  text.textContent = I18n.t('btn_submitting');
+  spin.style.display = 'inline-block';
+
+  const activities = [...document.querySelectorAll('input[name="activities"]:checked')].map(c => c.value);
+
+  const payload = {
+    institution_name:     document.getElementById('inst_name').value.trim(),
+    country:              document.getElementById('country').value.trim(),
+    institution_type:     document.getElementById('inst_type').value,
+    website:              document.getElementById('website').value.trim() || null,
+    founded_year:         parseInt(document.getElementById('founded_year').value) || null,
+    contact_name:         document.getElementById('contact_name').value.trim(),
+    contact_role:         document.getElementById('contact_role').value.trim(),
+    contact_email:        document.getElementById('contact_email').value.trim(),
+    contact_phone:        document.getElementById('contact_phone').value.trim() || null,
+    student_count:        parseInt(document.getElementById('student_count').value) || null,
+    programs_count:       parseInt(document.getElementById('programs_count').value) || null,
+    accreditations:       document.getElementById('accreditations').value.trim(),
+    motivation:           document.getElementById('motivation').value.trim(),
+    proposed_activities:  activities,
+    lang:                 I18n.getLang()
+  };
+
+  try {
+    const res = await fetch('/api/evaluate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) throw new Error('API error');
+
+    const data = await res.json();
+    document.getElementById('application-form').style.display = 'none';
+    showResult(data);
+
+  } catch (err) {
+    toast(I18n.t('error_generic'), 'error');
+    btn.disabled = false;
+    text.setAttribute('data-i18n', 'btn_submit');
+    text.textContent = I18n.t('btn_submit');
+    spin.style.display = 'none';
+  }
+});
+
+// Limpiar error al escribir
+document.querySelectorAll('.form-input, .form-select, .form-textarea').forEach(el => {
+  el.addEventListener('input', () => {
+    el.classList.remove('error');
+    const errId = 'err_' + el.id;
+    document.getElementById(errId)?.classList.remove('visible');
+  });
+});
+</script>
+</body>
+</html>

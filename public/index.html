@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GAN — Red Global de Universidades</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <script>
+    window.__GAN_CONFIG__ = {
+      supabaseUrl:  'SUPABASE_URL_PLACEHOLDER',
+      supabaseAnon: 'SUPABASE_ANON_PLACEHOLDER'
+    };
+  </script>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="/" class="navbar-brand">GAN <span>Network</span></a>
+    <ul class="navbar-nav">
+      <li><a href="/pages/postulacion.html" data-i18n="nav_apply"></a></li>
+      <li><a href="/pages/login.html" id="nav-login-link" data-i18n="nav_login"></a></li>
+      <li><a href="/pages/portal.html" id="nav-portal-link" class="hidden" data-i18n="nav_portal"></a></li>
+      <li><a href="/pages/directorio.html" id="nav-dir-link" class="hidden" data-i18n="nav_directory"></a></li>
+      <li><a href="/pages/admin.html" id="nav-admin-link" class="hidden" data-i18n="nav_admin"></a></li>
+      <li><button id="nav-logout-btn" class="btn btn-ghost btn-sm hidden" data-i18n="nav_logout"></button></li>
+    </ul>
+    <div class="lang-switcher">
+      <button data-lang-btn="es">ES</button>
+      <button data-lang-btn="en">EN</button>
+      <button data-lang-btn="pt">PT</button>
+      <button data-lang-btn="fr">FR</button>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <h1 data-i18n="hero_title"></h1>
+    <p data-i18n="hero_subtitle"></p>
+    <div class="hero-actions">
+      <a href="/pages/postulacion.html" class="btn btn-white btn-lg" data-i18n="hero_cta"></a>
+      <a href="/pages/login.html" class="btn btn-outline btn-lg" style="border-color:rgba(255,255,255,.5);color:#fff;" data-i18n="hero_login"></a>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<section style="background:#fff; border-bottom: 1px solid #e2e8f0; padding: 2.5rem 0;">
+  <div class="container">
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 2rem; text-align:center;">
+      <div>
+        <div style="font-size:2rem;font-weight:800;color:var(--color-primary);" id="stat-members">—</div>
+        <div style="color:var(--color-text-muted);font-size:.9rem;" data-i18n-stat="stat_institutions">Instituciones miembro</div>
+      </div>
+      <div>
+        <div style="font-size:2rem;font-weight:800;color:var(--color-primary);" id="stat-countries">—</div>
+        <div style="color:var(--color-text-muted);font-size:.9rem;" data-i18n-stat="stat_countries">Países</div>
+      </div>
+      <div>
+        <div style="font-size:2rem;font-weight:800;color:var(--color-primary);" id="stat-benefits">—</div>
+        <div style="color:var(--color-text-muted);font-size:.9rem;" data-i18n-stat="stat_benefits">Beneficios activos</div>
+      </div>
+      <div>
+        <div style="font-size:2rem;font-weight:800;color:var(--color-primary);" id="stat-members-count">—</div>
+        <div style="color:var(--color-text-muted);font-size:.9rem;" data-i18n-stat="stat_members">Miembros registrados</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section style="padding: 4rem 0;">
+  <div class="container">
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+      <div class="card">
+        <div style="font-size:2rem;margin-bottom:.75rem;">🎓</div>
+        <h3 style="font-weight:700;margin-bottom:.5rem;" data-i18n-feat="feat1_title">Postulación inteligente</h3>
+        <p style="color:var(--color-text-muted);font-size:.9rem;" data-i18n-feat="feat1_desc">Inteligencia artificial evalúa cada postulación en segundos con una rúbrica objetiva y transparente.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:2rem;margin-bottom:.75rem;">🌐</div>
+        <h3 style="font-weight:700;margin-bottom:.5rem;" data-i18n-feat="feat2_title">Red internacional</h3>
+        <p style="color:var(--color-text-muted);font-size:.9rem;" data-i18n-feat="feat2_desc">Conectamos universidades de todo el mundo en español, inglés, portugués y francés.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:2rem;margin-bottom:.75rem;">🎁</div>
+        <h3 style="font-weight:700;margin-bottom:.5rem;" data-i18n-feat="feat3_title">Beneficios exclusivos</h3>
+        <p style="color:var(--color-text-muted);font-size:.9rem;" data-i18n-feat="feat3_desc">Software, cursos, becas, viajes de estudio y más — disponibles para todos los miembros GAN.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer style="background:var(--color-nav-bg);color:#94a3b8;padding:2rem 0;text-align:center;font-size:.85rem;margin-top:auto;">
+  <div class="container">
+    <p>© 2025 GAN — Global Academic Network. Todos los derechos reservados.</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/js/i18n.js"></script>
+<script src="/js/supabase-client.js"></script>
+<script>
+(async () => {
+  // Mostrar/ocultar nav según sesión
+  const session = await Auth.getSession();
+  if (session) {
+    document.getElementById('nav-login-link').classList.add('hidden');
+    document.getElementById('nav-portal-link').classList.remove('hidden');
+    document.getElementById('nav-dir-link').classList.remove('hidden');
+    document.getElementById('nav-logout-btn').classList.remove('hidden');
+    const profile = await Auth.getProfile();
+    if (profile?.app_role === 'institution_admin' || profile?.app_role === 'super_admin') {
+      document.getElementById('nav-admin-link').classList.remove('hidden');
+    }
+  }
+
+  document.getElementById('nav-logout-btn')?.addEventListener('click', () => Auth.signOut());
+
+  // Cargar estadísticas
+  try {
+    const [{ count: instCount }, { count: benefitCount }, { count: memberCount }] = await Promise.all([
+      db.from('institutions').select('*', { count: 'exact', head: true }).eq('status', 'approved'),
+      db.from('benefits').select('*', { count: 'exact', head: true }).eq('is_active', true),
+      db.from('profiles').select('*', { count: 'exact', head: true })
+    ]);
+
+    const { data: countries } = await db.from('institutions').select('country').eq('status', 'approved');
+    const uniqueCountries = new Set(countries?.map(r => r.country) || []).size;
+
+    document.getElementById('stat-members').textContent     = instCount ?? 0;
+    document.getElementById('stat-countries').textContent   = uniqueCountries;
+    document.getElementById('stat-benefits').textContent    = benefitCount ?? 0;
+    document.getElementById('stat-members-count').textContent = memberCount ?? 0;
+  } catch (_) {}
+})();
+</script>
+</body>
+</html>

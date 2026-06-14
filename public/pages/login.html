@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GAN — Acceder</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    body { display: flex; flex-direction: column; min-height: 100vh; background: var(--color-bg); }
+    .login-wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+    .login-card {
+      background: #fff;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      width: 100%;
+      max-width: 420px;
+      padding: 2.5rem;
+    }
+    .login-logo {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .login-logo a {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--color-text);
+      text-decoration: none;
+    }
+    .login-logo a span { color: var(--color-primary); }
+    .login-logo p {
+      color: var(--color-text-muted);
+      font-size: .875rem;
+      margin-top: .35rem;
+    }
+    .divider {
+      text-align: center;
+      position: relative;
+      margin: 1.25rem 0;
+      color: var(--color-text-muted);
+      font-size: .8rem;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      width: 42%;
+      height: 1px;
+      background: var(--color-border);
+    }
+    .divider::before { left: 0; }
+    .divider::after  { right: 0; }
+  </style>
+  <script>
+    window.__GAN_CONFIG__ = {
+      supabaseUrl:  'SUPABASE_URL_PLACEHOLDER',
+      supabaseAnon: 'SUPABASE_ANON_PLACEHOLDER'
+    };
+  </script>
+</head>
+<body>
+
+<!-- NAVBAR mínima -->
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="/" class="navbar-brand">GAN <span>Network</span></a>
+    <div class="lang-switcher" style="margin-left:auto;">
+      <button data-lang-btn="es">ES</button>
+      <button data-lang-btn="en">EN</button>
+      <button data-lang-btn="pt">PT</button>
+      <button data-lang-btn="fr">FR</button>
+    </div>
+  </div>
+</nav>
+
+<div class="login-wrap">
+  <div class="login-card">
+    <div class="login-logo">
+      <a href="/"><span>GAN</span> Network</a>
+      <p data-i18n="login_title"></p>
+    </div>
+
+    <!-- FORMULARIO LOGIN -->
+    <form id="login-form" novalidate>
+      <div class="form-group">
+        <label class="form-label" for="email" data-i18n="login_email"></label>
+        <input type="email" id="email" class="form-input" autocomplete="email" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="password" data-i18n="login_password"></label>
+        <input type="password" id="password" class="form-input" autocomplete="current-password" required>
+      </div>
+
+      <div id="login-error" style="display:none; color:var(--color-danger); font-size:.85rem; margin-bottom:.75rem;" data-i18n="login_error"></div>
+
+      <button type="submit" id="login-btn" class="btn btn-primary" style="width:100%; justify-content:center;">
+        <span id="login-text" data-i18n="login_btn"></span>
+        <span class="spinner" id="login-spinner" style="display:none;"></span>
+      </button>
+    </form>
+
+    <div class="divider">—</div>
+
+    <p style="text-align:center; font-size:.85rem;">
+      <a href="#" id="forgot-link" data-i18n="login_forgot"></a>
+    </p>
+
+    <p style="text-align:center; font-size:.85rem; margin-top:1rem; color:var(--color-text-muted);">
+      ¿No eres miembro? <a href="/pages/postulacion.html" data-i18n="nav_apply"></a>
+    </p>
+
+    <!-- PANEL RECUPERAR CONTRASEÑA (oculto) -->
+    <div id="reset-panel" style="display:none; margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid var(--color-border);">
+      <p style="font-size:.875rem; color:var(--color-text-muted); margin-bottom:.75rem;">
+        Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.
+      </p>
+      <div class="form-group">
+        <input type="email" id="reset-email" class="form-input" placeholder="tu@universidad.edu">
+      </div>
+      <button id="reset-btn" class="btn btn-outline" style="width:100%;justify-content:center;">
+        Enviar enlace
+      </button>
+      <p id="reset-msg" style="display:none; text-align:center; font-size:.85rem; color:var(--color-success); margin-top:.75rem;">
+        ✅ Enlace enviado. Revisa tu correo.
+      </p>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/js/i18n.js"></script>
+<script src="/js/supabase-client.js"></script>
+<script>
+(async () => {
+  // Redirigir si ya tiene sesión
+  const session = await Auth.getSession();
+  if (session) {
+    const profile = await Auth.getProfile();
+    redirectByRole(profile?.app_role);
+    return;
+  }
+})();
+
+function redirectByRole(role) {
+  if (role === 'institution_admin' || role === 'super_admin') {
+    window.location.href = '/pages/admin.html';
+  } else {
+    window.location.href = '/pages/portal.html';
+  }
+}
+
+// Login
+document.getElementById('login-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const email    = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const errEl    = document.getElementById('login-error');
+  const btn      = document.getElementById('login-btn');
+  const text     = document.getElementById('login-text');
+  const spin     = document.getElementById('login-spinner');
+
+  errEl.style.display = 'none';
+  btn.disabled = true;
+  text.textContent = '...';
+  spin.style.display = 'inline-block';
+
+  const { data, error } = await Auth.signIn(email, password);
+
+  if (error) {
+    errEl.style.display = 'block';
+    btn.disabled = false;
+    text.textContent = I18n.t('login_btn');
+    spin.style.display = 'none';
+    return;
+  }
+
+  const profile = await Auth.getProfile();
+  redirectByRole(profile?.app_role);
+});
+
+// Recuperar contraseña
+document.getElementById('forgot-link').addEventListener('click', (e) => {
+  e.preventDefault();
+  const panel = document.getElementById('reset-panel');
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+});
+
+document.getElementById('reset-btn').addEventListener('click', async () => {
+  const email = document.getElementById('reset-email').value.trim();
+  if (!email) return;
+  const { error } = await Auth.resetPassword(email);
+  if (!error) {
+    document.getElementById('reset-msg').style.display = 'block';
+    document.getElementById('reset-btn').disabled = true;
+  }
+});
+</script>
+</body>
+</html>
