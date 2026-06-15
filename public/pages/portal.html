@@ -173,12 +173,42 @@ const CATEGORY_ICONS = {
 
 async function loadBenefits() {
   const lang = I18n.getLang();
-  const res = await fetch(`/api/benefits?lang=${lang}`, {
-    headers: { 'Authorization': `Bearer ${authToken}` }
-  });
-  if (!res.ok) return;
-  const data = await res.json();
-  allBenefits = data.benefits || [];
+  const today = new Date().toISOString().slice(0, 10);
+
+  const { data: benefits, error } = await db
+    .from('benefits')
+    .select('*')
+    .eq('is_active', true)
+    .or(`valid_until.is.null,valid_until.gte.${today}`)
+    .order('created_at', { ascending: false });
+
+  if (error) { console.error(error); return; }
+
+  // Obtener canjes del usuario actual
+  const { data: { user } } = await db.auth.getUser();
+  const { data: claims } = await db
+    .from('benefit_claims')
+    .select('benefit_id')
+    .eq('user_id', user.id);
+
+  const claimedIds = new Set(claims?.map(c => c.benefit_id) || []);
+
+  allBenefits = (benefits || []).map(b => ({
+    id:           b.id,
+    title:        b[`title_${lang}`] || b.title_es,
+    description:  b[`description_${lang}`] || b.description_es,
+    provider_name: b.provider_name,
+    provider_logo: b.provider_logo,
+    category:     b.category,
+    discount_pct: b.discount_pct,
+    code:         b.code,
+    link:         b.link,
+    valid_until:  b.valid_until,
+    max_claims:   b.max_claims,
+    available:    b.max_claims ? b.max_claims - b.current_claims : null,
+    claimed:      claimedIds.has(b.id)
+  }));
+
   renderBenefits(currentCategory === 'all'
     ? allBenefits
     : allBenefits.filter(b => b.category === currentCategory));
@@ -261,26 +291,22 @@ async function claimBenefit(benefitId) {
   const btn = document.querySelector(`.benefit-card[data-id="${benefitId}"] button`);
   if (btn) { btn.disabled = true; btn.textContent = '...'; }
 
-  const res = await fetch('/api/benefits', {
-    method: 'POST',
-    headers: { 'Authorization': `Bearer ${authToken}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ benefit_id: benefitId })
-  });
+  const { data: { user } } = await db.auth.getUser();
 
-  const data = await res.json();
+  const { error: claimError } = await db
+    .from('benefit_claims')
+    .insert({ benefit_id: benefitId, user_id: user.id });
 
-  if (!res.ok) {
-    toast(data.error || I18n.t('error_generic'), 'error');
+  if (claimError && claimError.code !== '23505') {
+    toast(I18n.t('error_generic'), 'error');
     if (btn) { btn.disabled = false; btn.textContent = I18n.t('portal_claim'); }
     return;
   }
 
   // Marcar como canjeado localmente
   benefit.claimed = true;
-  benefit.code    = data.code;
-  benefit.link    = data.link;
 
-  showCodeModal(benefit, data.already_claimed || false);
+  showCodeModal(benefit, claimError?.code === '23505');
   renderBenefits(currentCategory === 'all'
     ? allBenefits
     : allBenefits.filter(b => b.category === currentCategory));
