@@ -181,30 +181,29 @@ ${activitiesText}
       console.error('Supabase insert error:', dbError);
     }
 
-    // ── 3. Email de confirmación al postulante ────────────────────────────
+    // ── 3 & 4. Emails en paralelo ─────────────────────────────────────────
     const confirmTpl = tplConfirmation({ institution_name, contact_name, lang });
-    await sendEmail({ to: contact_email, ...confirmTpl });
 
-    // ── 4. Email de notificación al super_admin ───────────────────────────
     const adminEmail = process.env.SUPER_ADMIN_EMAIL || 'admin@balticec.com';
     const appUrl     = process.env.APP_URL || 'https://system-gan.vercel.app';
-    const adminUrl   = `${appUrl}/pages/superadmin.html`;
-
-    const adminTpl = tplAdminNotification({
+    const adminTpl   = tplAdminNotification({
       institution_name,
       contact_name,
       contact_email,
       country,
-      ai_score:        evaluation.score,
-      ai_decision:     evaluation.decision,
+      ai_score:         evaluation.score,
+      ai_decision:      evaluation.decision,
       ai_justification: evaluation.justification,
-      app_id:          savedApp?.id,
-      adminUrl,
+      app_id:           savedApp?.id,
+      adminUrl:         `${appUrl}/pages/superadmin.html`,
     });
-    await sendEmail({ to: adminEmail, ...adminTpl });
 
-    // Marcar admin_notified
-    if (savedApp) {
+    const [, adminResult] = await Promise.all([
+      sendEmail({ to: contact_email, ...confirmTpl }),
+      sendEmail({ to: adminEmail,    ...adminTpl   }),
+    ]);
+
+    if (savedApp && adminResult.ok) {
       await supabase.from('applications').update({ admin_notified: true }).eq('id', savedApp.id);
     }
 
