@@ -3,6 +3,7 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 import { createClient } from '@supabase/supabase-js';
+import { sendEmail, tplConfirmation, tplAdminNotification } from './_email.js';
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -10,11 +11,6 @@ const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
-
-// Puntaje mínimo para aprobar automáticamente
-const APPROVAL_THRESHOLD = 70;
-// Zona gris: entre REVIEW_MIN y APPROVAL_THRESHOLD → revisión manual
-const REVIEW_MIN = 55;
 
 const RUBRIC_PROMPT = `Eres el evaluador oficial de postulaciones para GAN (Global Academic Network), una red internacional de universidades.
 
@@ -82,6 +78,9 @@ const LANG_INSTRUCTION = {
   fr: 'Rédigez la justification en français.',
 };
 
+// Delay en ms antes de notificar al postulante (68 horas)
+const NOTIFY_DELAY_MS = 68 * 60 * 60 * 1000;
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -94,7 +93,6 @@ export default async function handler(req, res) {
     proposed_activities, lang = 'es'
   } = req.body;
 
-  // Validación mínima
   if (!institution_name || !contact_email || !motivation || !accreditations) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
@@ -126,90 +124,88 @@ ${activitiesText}
 `.trim();
 
   try {
+    // ── 1. Evaluar con Claude ─────────────────────────────────────────────
     const message = await anthropic.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 1024,
-      messages: [
-        {
-          role: 'user',
-          content: `${RUBRIC_PROMPT}\n\n${LANG_INSTRUCTION[lang] || LANG_INSTRUCTION.es}\n\n## POSTULACIÓN A EVALUAR:\n\n${applicationText}`
-        }
-      ]
+      messages: [{
+        role: 'user',
+        content: `${RUBRIC_PROMPT}\n\n${LANG_INSTRUCTION[lang] || LANG_INSTRUCTION.es}\n\n## POSTULACIÓN A EVALUAR:\n\n${applicationText}`
+      }]
     });
 
     const rawText = message.content[0].text.trim();
-
     let evaluation;
     try {
       evaluation = JSON.parse(rawText);
     } catch {
-      // Intentar extraer JSON si Claude agregó texto extra
       const match = rawText.match(/\{[\s\S]*\}/);
       if (!match) throw new Error('Invalid JSON from Claude');
       evaluation = JSON.parse(match[0]);
     }
 
-    // Guardar en Supabase
+    // ── 2. Guardar en Supabase ────────────────────────────────────────────
+    const notifyAt = new Date(Date.now() + NOTIFY_DELAY_MS).toISOString();
+
     const { data: savedApp, error: dbError } = await supabase
       .from('applications')
       .insert({
         institution_name,
         country,
         institution_type,
-        website:              website || null,
-        founded_year:         founded_year || null,
+        website:             website || null,
+        founded_year:        founded_year || null,
         contact_name,
         contact_role,
         contact_email,
-        contact_phone:        contact_phone || null,
-        student_count:        student_count || null,
-        programs_count:       programs_count || null,
+        contact_phone:       contact_phone || null,
+        student_count:       student_count || null,
+        programs_count:      programs_count || null,
         accreditations,
         motivation,
-        proposed_activities:  Array.isArray(proposed_activities) ? proposed_activities : [],
-        ai_score:             evaluation.score,
-        ai_decision:          evaluation.decision,
-        ai_justification:     evaluation.justification,
-        ai_breakdown:         evaluation.breakdown,
-        final_decision:       evaluation.decision === 'approved' ? 'approved'
-                              : evaluation.decision === 'rejected' ? 'rejected'
-                              : 'pending',
+        proposed_activities: Array.isArray(proposed_activities) ? proposed_activities : [],
+        ai_score:            evaluation.score,
+        ai_decision:         evaluation.decision,
+        ai_justification:    evaluation.justification,
+        ai_breakdown:        evaluation.breakdown,
+        final_decision:      'pending',   // siempre pending hasta que el cron lo envíe
+        contact_lang:        lang,
+        notify_at:           notifyAt,
+        applicant_notified:  false,
+        admin_notified:      false,
       })
       .select()
       .single();
 
     if (dbError) {
       console.error('Supabase insert error:', dbError);
-      // No bloqueamos — devolvemos el resultado igual
     }
 
-    // Si fue aprobada automáticamente, crear la institución
-    if (evaluation.decision === 'approved' && savedApp) {
-      const { data: institution } = await supabase
-        .from('institutions')
-        .insert({
-          name:         institution_name,
-          country,
-          type:         institution_type,
-          website:      website || null,
-          founded_year: founded_year || null,
-          student_count: student_count || null,
-          programs:     programs_count || null,
-          accreditations,
-          status:       'approved'
-        })
-        .select()
-        .single();
+    // ── 3. Email de confirmación al postulante ────────────────────────────
+    const confirmTpl = tplConfirmation({ institution_name, contact_name, lang });
+    await sendEmail({ to: contact_email, ...confirmTpl });
 
-      if (institution) {
-        await supabase
-          .from('applications')
-          .update({ institution_id: institution.id })
-          .eq('id', savedApp.id);
+    // ── 4. Email de notificación al super_admin ───────────────────────────
+    const adminEmail = process.env.SUPER_ADMIN_EMAIL || 'admin@balticec.com';
+    const appUrl     = process.env.APP_URL || 'https://system-gan.vercel.app';
+    const adminUrl   = `${appUrl}/pages/superadmin.html`;
 
-        // TODO: enviar email de bienvenida con credenciales vía Supabase Auth
-        // await sendWelcomeEmail(contact_email, contact_name, institution_name, lang);
-      }
+    const adminTpl = tplAdminNotification({
+      institution_name,
+      contact_name,
+      contact_email,
+      country,
+      ai_score:        evaluation.score,
+      ai_decision:     evaluation.decision,
+      ai_justification: evaluation.justification,
+      app_id:          savedApp?.id,
+      adminUrl,
+    });
+    await sendEmail({ to: adminEmail, ...adminTpl });
+
+    // Marcar admin_notified
+    if (savedApp) {
+      await supabase.from('applications').update({ admin_notified: true }).eq('id', savedApp.id);
     }
 
     return res.status(200).json({
