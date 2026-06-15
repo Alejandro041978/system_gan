@@ -334,45 +334,46 @@ function validateForm() {
   return valid;
 }
 
-// Mostrar resultado
+// Mostrar confirmación de recepción (sin revelar decisión IA)
 function showResult(data) {
-  const box = document.getElementById('result-box');
-  const { decision, score, breakdown, justification } = data;
+  const box  = document.getElementById('result-box');
+  const lang = I18n.getLang();
 
-  const icons = { approved: '✅', rejected: '❌', review: '⏳' };
-  const titleKey = `result_${decision}_title`;
-  const msgKey   = `result_${decision}_msg`;
+  const copy = {
+    es: {
+      icon:  '📬',
+      title: '¡Postulación recibida!',
+      msg:   'Hemos recibido tu postulación correctamente. Nuestro equipo la revisará y recibirás una respuesta por correo electrónico en un plazo máximo de <strong>3 días hábiles</strong>.',
+      sub:   'Revisa tu bandeja de entrada (y la carpeta de spam) en los próximos días.',
+    },
+    en: {
+      icon:  '📬',
+      title: 'Application received!',
+      msg:   'We have successfully received your application. Our team will review it and you will receive a response by email within <strong>3 business days</strong>.',
+      sub:   'Please check your inbox (and spam folder) in the coming days.',
+    },
+    pt: {
+      icon:  '📬',
+      title: 'Candidatura recebida!',
+      msg:   'Recebemos a sua candidatura com sucesso. A nossa equipa irá analisá-la e receberá uma resposta por e-mail no prazo máximo de <strong>3 dias úteis</strong>.',
+      sub:   'Por favor, verifique a sua caixa de entrada (e a pasta de spam) nos próximos dias.',
+    },
+    fr: {
+      icon:  '📬',
+      title: 'Candidature reçue !',
+      msg:   'Nous avons bien reçu votre candidature. Notre équipe l\'examinera et vous recevrez une réponse par e-mail dans un délai maximum de <strong>3 jours ouvrables</strong>.',
+      sub:   'Veuillez vérifier votre boîte de réception (et le dossier spam) dans les prochains jours.',
+    },
+  };
 
-  const breakdownHTML = breakdown ? `
-    <div class="score-breakdown">
-      <div class="score-item">
-        <div class="score-item-label">${I18n.t('rubric_accreditation')}</div>
-        <div class="score-item-value">${breakdown.accreditation ?? '—'}<small>/40</small></div>
-      </div>
-      <div class="score-item">
-        <div class="score-item-label">${I18n.t('rubric_motivation')}</div>
-        <div class="score-item-value">${breakdown.motivation ?? '—'}<small>/30</small></div>
-      </div>
-      <div class="score-item">
-        <div class="score-item-label">${I18n.t('rubric_institution')}</div>
-        <div class="score-item-value">${breakdown.institution ?? '—'}<small>/20</small></div>
-      </div>
-      <div class="score-item">
-        <div class="score-item-label">${I18n.t('rubric_contact')}</div>
-        <div class="score-item-value">${breakdown.contact ?? '—'}<small>/10</small></div>
-      </div>
-    </div>
-  ` : '';
+  const t = copy[lang] || copy.es;
 
   box.innerHTML = `
-    <div class="result-box ${decision}">
-      <div class="result-icon">${icons[decision]}</div>
-      <div class="result-title">${I18n.t(titleKey)}</div>
-      <p>${I18n.t(msgKey)}</p>
-      ${score !== undefined ? `<div class="result-score">${score}<small style="font-size:1.2rem">/100</small></div>` : ''}
-      <p style="font-size:.8rem;color:var(--color-text-muted)">${I18n.t('result_score')}</p>
-      ${breakdownHTML}
-      ${justification ? `<div class="result-justification">${justification}</div>` : ''}
+    <div class="result-box" style="background:linear-gradient(135deg,#f0fdf4,#eff6ff);border:2px solid #86efac;border-radius:var(--radius-lg);padding:2.5rem;text-align:center;">
+      <div style="font-size:3rem;margin-bottom:1rem;">${t.icon}</div>
+      <h2 style="color:#0e9f6e;margin:0 0 .75rem;">${t.title}</h2>
+      <p style="color:#334155;line-height:1.7;max-width:480px;margin:0 auto .75rem;">${t.msg}</p>
+      <p style="font-size:.85rem;color:#64748b;">${t.sub}</p>
     </div>
   `;
   box.style.display = 'block';
