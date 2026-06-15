@@ -113,7 +113,7 @@ CREATE TABLE benefits (
   link          TEXT,          -- URL de canje
   -- Disponibilidad
   is_active     BOOLEAN NOT NULL DEFAULT TRUE,
-  valid_until   DATE,
+  valid_until   DATE, -- Usar fechas futuras al insertar beneficios
   -- Límite de canjes (null = ilimitado)
   max_claims    INT,
   current_claims INT NOT NULL DEFAULT 0,

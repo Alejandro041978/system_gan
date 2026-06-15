@@ -1,6 +1,6 @@
-// Helper de envío de emails via Resend
+﻿// Helper de envío de emails via Resend
 // Requiere variable de entorno: RESEND_API_KEY
-// Requiere variable de entorno: EMAIL_FROM  (ej: "GAN Network <noreply@tudominio.com>")
+// Requiere variable de entorno: EMAIL_FROM  (ej: "GAN System <noreply@tudominio.com>")
 // Requiere variable de entorno: SUPER_ADMIN_EMAIL (ej: "admin@balticec.com")
 
 const RESEND_API = 'https://api.resend.com/emails';
@@ -12,7 +12,7 @@ export async function sendEmail({ to, subject, html }) {
     return { ok: false, reason: 'no_api_key' };
   }
 
-  const from = process.env.EMAIL_FROM || 'GAN Network <noreply@gan-network.com>';
+  const from = process.env.EMAIL_FROM || 'GAN System <noreply@gan-system.com>';
 
   const res = await fetch(RESEND_API, {
     method: 'POST',
@@ -37,40 +37,40 @@ export async function sendEmail({ to, subject, html }) {
 export function tplConfirmation({ institution_name, contact_name, lang = 'es' }) {
   const copy = {
     es: {
-      subject: `GAN Network — Postulación recibida: ${institution_name}`,
+      subject: `GAN System — Postulación recibida: ${institution_name}`,
       title: 'Hemos recibido tu postulación',
       body: `Estimado/a <strong>${contact_name}</strong>,<br><br>
         Tu postulación para que <strong>${institution_name}</strong> forme parte de la
-        Global Academic Network (GAN) ha sido recibida exitosamente.<br><br>
+        GAN System ha sido recibida exitosamente.<br><br>
         Nuestro equipo revisará tu expediente durante los próximos <strong>3 días hábiles</strong>
         y te notificaremos el resultado por este mismo correo.<br><br>
         Gracias por tu interés en unirte a la red.`,
       footer: 'Si tienes alguna consulta, responde a este correo.',
     },
     en: {
-      subject: `GAN Network — Application received: ${institution_name}`,
+      subject: `GAN System — Application received: ${institution_name}`,
       title: 'We have received your application',
       body: `Dear <strong>${contact_name}</strong>,<br><br>
         Your application for <strong>${institution_name}</strong> to join the
-        Global Academic Network (GAN) has been received successfully.<br><br>
+        GAN System has been received successfully.<br><br>
         Our team will review your application within the next <strong>3 business days</strong>
         and will notify you of the outcome at this email address.<br><br>
         Thank you for your interest in joining the network.`,
       footer: 'If you have any questions, reply to this email.',
     },
     pt: {
-      subject: `GAN Network — Candidatura recebida: ${institution_name}`,
+      subject: `GAN System — Candidatura recebida: ${institution_name}`,
       title: 'Recebemos a sua candidatura',
       body: `Caro/a <strong>${contact_name}</strong>,<br><br>
         A candidatura de <strong>${institution_name}</strong> para fazer parte da
-        Global Academic Network (GAN) foi recebida com sucesso.<br><br>
+        GAN System foi recebida com sucesso.<br><br>
         Nossa equipa irá analisar o seu processo nos próximos <strong>3 dias úteis</strong>
         e irá notificá-lo/a do resultado por este e-mail.<br><br>
         Obrigado pelo seu interesse em aderir à rede.`,
       footer: 'Se tiver alguma dúvida, responda a este e-mail.',
     },
     fr: {
-      subject: `GAN Network — Candidature reçue : ${institution_name}`,
+      subject: `GAN System — Candidature reçue : ${institution_name}`,
       title: 'Nous avons reçu votre candidature',
       body: `Cher/Chère <strong>${contact_name}</strong>,<br><br>
         Votre candidature pour que <strong>${institution_name}</strong> rejoigne le
@@ -175,7 +175,7 @@ export function tplDecisionNotification({ institution_name, contact_name, final_
         <strong>Evaluación del comité:</strong><br>${ai_justification}
       </div>` : ''}
     `,
-    footer: 'Global Academic Network · gan-network.com',
+    footer: 'GAN System · gan-system.com',
   });
 
   return { subject, html };
@@ -194,7 +194,7 @@ function emailLayout({ title, body, footer, accentColor = '#1a56db' }) {
         <!-- Header -->
         <tr><td style="background:linear-gradient(135deg,#1e293b,${accentColor});padding:2rem;text-align:center;">
           <div style="color:#fff;font-size:1.5rem;font-weight:800;letter-spacing:-.02em;">GAN <span style="opacity:.7;font-weight:400;">Network</span></div>
-          <div style="color:rgba(255,255,255,.7);font-size:.8rem;margin-top:.25rem;">Global Academic Network</div>
+          <div style="color:rgba(255,255,255,.7);font-size:.8rem;margin-top:.25rem;">GAN System</div>
         </td></tr>
         <!-- Title -->
         <tr><td style="padding:2rem 2rem .5rem;border-bottom:1px solid #e2e8f0;">
