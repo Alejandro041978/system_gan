@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GAN — Panel Administrador</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    .stat-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .stat-icon {
+      font-size: 2rem;
+      width: 52px;
+      height: 52px;
+      border-radius: var(--radius);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .stat-value { font-size: 1.75rem; font-weight: 800; line-height: 1; }
+    .stat-label { font-size: .8rem; color: var(--color-text-muted); margin-top: .2rem; }
+
+    .app-row { cursor: pointer; }
+    .app-row:hover td { background: #f8fafc; }
+
+    .score-bar {
+      height: 6px;
+      border-radius: 3px;
+      background: var(--color-border);
+      overflow: hidden;
+      margin-top: .3rem;
+    }
+    .score-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width .4s ease;
+    }
+
+    .detail-panel {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .detail-header {
+      background: linear-gradient(135deg, #1e293b 0%, #1a56db 100%);
+      color: #fff;
+      padding: 1.5rem;
+    }
+    .detail-section {
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .detail-section:last-child { border-bottom: none; }
+    .detail-section h3 {
+      font-size: .8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--color-text-muted);
+      margin-bottom: 1rem;
+    }
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: .75rem;
+    }
+    .detail-field label {
+      font-size: .75rem;
+      color: var(--color-text-muted);
+      font-weight: 600;
+    }
+    .detail-field p {
+      font-size: .9rem;
+      font-weight: 600;
+      color: var(--color-text);
+      margin-top: .15rem;
+    }
+
+    .rubric-bar-item {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      margin-bottom: .6rem;
+    }
+    .rubric-bar-label { font-size: .8rem; width: 180px; flex-shrink: 0; }
+    .rubric-bar-track {
+      flex: 1;
+      height: 10px;
+      background: var(--color-border);
+      border-radius: 5px;
+      overflow: hidden;
+    }
+    .rubric-bar-fill {
+      height: 100%;
+      border-radius: 5px;
+    }
+    .rubric-bar-score { font-size: .8rem; font-weight: 700; width: 50px; text-align: right; }
+
+    .ai-box {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      font-size: .875rem;
+      line-height: 1.7;
+      color: var(--color-text);
+    }
+
+    .tabs { display: flex; gap: 0; border-bottom: 2px solid var(--color-border); margin-bottom: 1.5rem; }
+    .tab-btn {
+      padding: .6rem 1.25rem;
+      border: none;
+      background: none;
+      font-size: .875rem;
+      font-weight: 600;
+      color: var(--color-text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: all var(--transition);
+    }
+    .tab-btn.active { color: var(--color-primary); border-bottom-color: var(--color-primary); }
+    .tab-btn:hover  { color: var(--color-text); }
+
+    @media (max-width: 900px) {
+      .layout-split { flex-direction: column; }
+      .list-col, .detail-col { width: 100% !important; }
+    }
+  </style>
+  <script>
+    window.__GAN_CONFIG__ = {
+      supabaseUrl:  'https://szevodmqxuxljfelorcu.supabase.co',
+      supabaseAnon: 'sb_publishable_Se492A4JupPSQVxtdQKfSQ_CUnx1DXX'
+    };
+  </script>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="/" class="navbar-brand">GAN <span>Network</span></a>
+    <ul class="navbar-nav">
+      <li><a href="/pages/superadmin.html" class="active">Admin</a></li>
+      <li><a href="/pages/portal.html" data-i18n="nav_portal"></a></li>
+      <li><a href="/pages/directorio.html" data-i18n="nav_directory"></a></li>
+      <li><button id="nav-logout-btn" class="btn btn-ghost btn-sm" data-i18n="nav_logout"></button></li>
+    </ul>
+    <div class="lang-switcher">
+      <button data-lang-btn="es">ES</button>
+      <button data-lang-btn="en">EN</button>
+      <button data-lang-btn="pt">PT</button>
+      <button data-lang-btn="fr">FR</button>
+    </div>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="container">
+    <h1>Panel de Administración GAN</h1>
+    <p>Gestión de postulaciones, instituciones y miembros.</p>
+  </div>
+</div>
+
+<div class="container" style="padding-bottom:3rem;">
+
+  <!-- ESTADÍSTICAS -->
+  <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1rem; margin-bottom:2rem;">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#eff6ff;">📋</div>
+      <div>
+        <div class="stat-value" id="stat-total">—</div>
+        <div class="stat-label">Total postulaciones</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#f0fdf4;">✅</div>
+      <div>
+        <div class="stat-value" id="stat-approved" style="color:var(--color-success);">—</div>
+        <div class="stat-label">Aprobadas</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#fef2f2;">❌</div>
+      <div>
+        <div class="stat-value" id="stat-rejected" style="color:var(--color-danger);">—</div>
+        <div class="stat-label">Rechazadas</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#fffbeb;">⏳</div>
+      <div>
+        <div class="stat-value" id="stat-review" style="color:var(--color-warning);">—</div>
+        <div class="stat-label">En revisión</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#f8fafc;">🏛️</div>
+      <div>
+        <div class="stat-value" id="stat-institutions">—</div>
+        <div class="stat-label">Instituciones activas</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="applications">Postulaciones</button>
+    <button class="tab-btn" data-tab="institutions">Instituciones</button>
+    <button class="tab-btn" data-tab="members">Miembros</button>
+  </div>
+
+  <!-- TAB: POSTULACIONES -->
+  <div id="tab-applications">
+    <!-- Filtros -->
+    <div class="filters-bar" style="margin-bottom:1.25rem;">
+      <button class="filter-chip active" data-filter="all">Todas</button>
+      <button class="filter-chip" data-filter="pending">Pendientes</button>
+      <button class="filter-chip" data-filter="review">En revisión</button>
+      <button class="filter-chip" data-filter="approved">Aprobadas</button>
+      <button class="filter-chip" data-filter="rejected">Rechazadas</button>
+      <input type="text" id="search-app" class="form-input" placeholder="Buscar institución o email..." style="max-width:260px; margin-left:auto;">
+    </div>
+
+    <!-- Layout split: lista + detalle -->
+    <div style="display:flex; gap:1.5rem;" class="layout-split">
+
+      <!-- Lista -->
+      <div style="width:420px; flex-shrink:0;" class="list-col">
+        <div class="card" style="padding:0; overflow:hidden;">
+          <div id="applications-list" style="max-height:70vh; overflow-y:auto;">
+            <div style="padding:2rem; text-align:center; color:var(--color-text-muted);">
+              <div class="spinner dark" style="margin:0 auto 1rem; width:24px; height:24px;"></div>
+              Cargando postulaciones...
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detalle -->
+      <div style="flex:1; min-width:0;" class="detail-col">
+        <div id="detail-empty" style="text-align:center; padding:4rem 2rem; color:var(--color-text-muted);">
+          <div style="font-size:3rem; margin-bottom:1rem;">📋</div>
+          <h3 style="color:var(--color-text); margin-bottom:.5rem;">Selecciona una postulación</h3>
+          <p>Haz clic en cualquier postulación de la lista para ver el detalle y la evaluación de la IA.</p>
+        </div>
+        <div id="detail-panel" style="display:none;"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TAB: INSTITUCIONES -->
+  <div id="tab-institutions" style="display:none;">
+    <div class="card" style="padding:0; overflow:hidden;">
+      <table class="users-table">
+        <thead>
+          <tr>
+            <th>Institución</th>
+            <th>País</th>
+            <th>Tipo</th>
+            <th>Estudiantes</th>
+            <th>Estado</th>
+            <th>Fecha</th>
+          </tr>
+        </thead>
+        <tbody id="institutions-tbody">
+          <tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--color-text-muted);">Cargando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB: MIEMBROS -->
+  <div id="tab-members" style="display:none;">
+    <div class="card" style="padding:0; overflow:hidden;">
+      <table class="users-table">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Email</th>
+            <th>Institución</th>
+            <th>Cargo</th>
+            <th>Rol</th>
+            <th>Idioma</th>
+          </tr>
+        </thead>
+        <tbody id="members-tbody">
+          <tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--color-text-muted);">Cargando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL: Confirmar decisión -->
+<div class="modal-overlay" id="decision-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="decision-modal-title"></span>
+      <button class="modal-close" onclick="document.getElementById('decision-modal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p id="decision-modal-body"></p>
+      <div class="form-group" style="margin-top:1rem;">
+        <label class="form-label">Nota interna (opcional)</label>
+        <textarea id="decision-notes" class="form-textarea" rows="3" placeholder="Justificación del equipo GAN..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('decision-modal').classList.remove('open')">Cancelar</button>
+      <button class="btn" id="decision-confirm-btn">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/js/i18n.js"></script>
+<script src="/js/supabase-client.js"></script>
+<script>
+let allApplications = [];
+let currentFilter  = 'all';
+let selectedAppId  = null;
+let pendingDecision = null;
+
+// ── Init ────────────────────────────────────────────────────────────
+(async () => {
+  const result = await Auth.requireAuth(['super_admin']);
+  if (!result) return;
+
+  document.getElementById('nav-logout-btn').addEventListener('click', () => Auth.signOut());
+
+  await Promise.all([loadStats(), loadApplications()]);
+
+  // Tabs
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      ['applications','institutions','members'].forEach(t => {
+        document.getElementById(`tab-${t}`).style.display = t === btn.dataset.tab ? '' : 'none';
+      });
+      if (btn.dataset.tab === 'institutions') loadInstitutions();
+      if (btn.dataset.tab === 'members')      loadMembers();
+    });
+  });
+
+  // Filtros de postulaciones
+  document.querySelectorAll('[data-filter]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentFilter = btn.dataset.filter;
+      renderApplicationsList();
+    });
+  });
+
+  // Búsqueda
+  document.getElementById('search-app').addEventListener('input', renderApplicationsList);
+})();
+
+// ── Estadísticas ────────────────────────────────────────────────────
+async function loadStats() {
+  const [
+    { count: total },
+    { count: approved },
+    { count: rejected },
+    { count: review },
+    { count: institutions }
+  ] = await Promise.all([
+    db.from('applications').select('*', { count: 'exact', head: true }),
+    db.from('applications').select('*', { count: 'exact', head: true }).eq('final_decision', 'approved'),
+    db.from('applications').select('*', { count: 'exact', head: true }).eq('final_decision', 'rejected'),
+    db.from('applications').select('*', { count: 'exact', head: true }).eq('final_decision', 'pending'),
+    db.from('institutions').select('*', { count: 'exact', head: true }).eq('status', 'approved'),
+  ]);
+
+  document.getElementById('stat-total').textContent        = total ?? 0;
+  document.getElementById('stat-approved').textContent     = approved ?? 0;
+  document.getElementById('stat-rejected').textContent     = rejected ?? 0;
+  document.getElementById('stat-review').textContent       = review ?? 0;
+  document.getElementById('stat-institutions').textContent = institutions ?? 0;
+}
+
+// ── Postulaciones ───────────────────────────────────────────────────
+async function loadApplications() {
+  const { data, error } = await db
+    .from('applications')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) { console.error(error); return; }
+  allApplications = data || [];
+  renderApplicationsList();
+}
+
+function renderApplicationsList() {
+  const search = document.getElementById('search-app').value.toLowerCase();
+  const list   = document.getElementById('applications-list');
+
+  let filtered = allApplications.filter(a => {
+    const matchFilter = currentFilter === 'all'
+      || (currentFilter === 'pending'  && a.final_decision === 'pending')
+      || (currentFilter === 'review'   && a.final_decision === 'pending' && a.ai_decision === 'review')
+      || (currentFilter === 'approved' && a.final_decision === 'approved')
+      || (currentFilter === 'rejected' && a.final_decision === 'rejected');
+
+    const matchSearch = !search
+      || a.institution_name?.toLowerCase().includes(search)
+      || a.contact_email?.toLowerCase().includes(search)
+      || a.country?.toLowerCase().includes(search);
+
+    return matchFilter && matchSearch;
+  });
+
+  if (filtered.length === 0) {
+    list.innerHTML = `<div style="padding:2rem;text-align:center;color:var(--color-text-muted);">Sin postulaciones</div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(a => {
+    const decisionBadge = {
+      approved: '<span class="badge badge-success">✓ Aprobada</span>',
+      rejected: '<span class="badge badge-danger">✗ Rechazada</span>',
+      pending:  a.ai_decision === 'review'
+                ? '<span class="badge badge-warning">⏳ En revisión</span>'
+                : '<span class="badge badge-gray">⏸ Pendiente</span>'
+    }[a.final_decision] || '<span class="badge badge-gray">—</span>';
+
+    const score = a.ai_score ?? '—';
+    const scoreColor = a.ai_score >= 70 ? 'var(--color-success)'
+                     : a.ai_score >= 55 ? 'var(--color-warning)'
+                     : a.ai_score ? 'var(--color-danger)' : 'var(--color-text-muted)';
+
+    const isSelected = a.id === selectedAppId;
+
+    return `
+      <div class="app-row" onclick="selectApplication('${a.id}')"
+        style="padding:1rem 1.25rem; border-bottom:1px solid var(--color-border);
+               ${isSelected ? 'background:#eff6ff; border-left:3px solid var(--color-primary);' : 'border-left:3px solid transparent;'}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;">
+          <div style="min-width:0;">
+            <div style="font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+              ${a.institution_name}
+            </div>
+            <div style="font-size:.78rem;color:var(--color-text-muted);margin-top:.1rem;">
+              ${a.country} · ${a.contact_email}
+            </div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;">
+            ${decisionBadge}
+            <div style="font-size:1rem;font-weight:800;color:${scoreColor};margin-top:.2rem;">${score !== '—' ? score + '/100' : '—'}</div>
+          </div>
+        </div>
+        <div style="font-size:.75rem;color:var(--color-text-muted);margin-top:.4rem;">
+          ${new Date(a.created_at).toLocaleDateString('es', { day:'2-digit', month:'short', year:'numeric' })}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function selectApplication(id) {
+  selectedAppId = id;
+  renderApplicationsList();
+  const app = allApplications.find(a => a.id === id);
+  if (!app) return;
+  renderDetailPanel(app);
+}
+
+function renderDetailPanel(app) {
+  document.getElementById('detail-empty').style.display = 'none';
+  const panel = document.getElementById('detail-panel');
+  panel.style.display = 'block';
+
+  const breakdown = app.ai_breakdown || {};
+  const score = app.ai_score ?? 0;
+  const scoreColor = score >= 70 ? '#0e9f6e' : score >= 55 ? '#d97706' : '#e02424';
+
+  const activityLabels = {
+    teacher_exchange: 'Intercambio docentes',
+    student_exchange: 'Intercambio estudiantes',
+    language_courses: 'Cursos de idiomas',
+    certifications:   'Certificaciones',
+    scholarships:     'Becas',
+    study_trips:      'Viajes de estudio',
+    dual_degree:      'Doble grado',
+    credit_transfer:  'Convalidaciones',
+    other:            'Otros'
+  };
+
+  const activities = (app.proposed_activities || [])
+    .map(a => activityLabels[a] || a)
+    .join(', ') || '—';
+
+  const canDecide = app.final_decision === 'pending';
+  const actionButtons = canDecide ? `
+    <div style="display:flex;gap:.75rem;flex-wrap:wrap;">
+      <button class="btn btn-primary" onclick="openDecisionModal('${app.id}','approved')">
+        ✅ Aprobar
+      </button>
+      <button class="btn btn-danger" onclick="openDecisionModal('${app.id}','rejected')">
+        ❌ Rechazar
+      </button>
+    </div>
+  ` : `
+    <div style="font-size:.875rem;color:var(--color-text-muted);">
+      Decisión final ya registrada: <strong>${app.final_decision === 'approved' ? '✅ Aprobada' : '❌ Rechazada'}</strong>
+      ${app.final_notes ? `<br><em>${app.final_notes}</em>` : ''}
+    </div>
+  `;
+
+  panel.innerHTML = `
+    <div class="detail-panel">
+
+      <!-- Header -->
+      <div class="detail-header">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap;">
+          <div>
+            <h2 style="font-size:1.3rem;font-weight:800;margin-bottom:.25rem;">${app.institution_name}</h2>
+            <div style="opacity:.8;font-size:.9rem;">${app.country} · ${app.institution_type}</div>
+          </div>
+          <div style="text-align:center;background:rgba(255,255,255,.15);border-radius:var(--radius-lg);padding:.75rem 1.25rem;">
+            <div style="font-size:2rem;font-weight:900;color:${scoreColor === '#0e9f6e' ? '#6ee7b7' : scoreColor === '#d97706' ? '#fde68a' : '#fca5a5'};">
+              ${app.ai_score ?? '—'}
+            </div>
+            <div style="font-size:.75rem;opacity:.8;">Puntaje IA</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Decisión rápida -->
+      <div class="detail-section" style="background:#f8fafc;">
+        <h3>Decisión</h3>
+        ${actionButtons}
+      </div>
+
+      <!-- Evaluación IA -->
+      ${app.ai_score ? `
+      <div class="detail-section">
+        <h3>Evaluación de la IA</h3>
+        <div style="margin-bottom:1rem;">
+          <div class="rubric-bar-item">
+            <span class="rubric-bar-label">Acreditaciones (40 pts)</span>
+            <div class="rubric-bar-track">
+              <div class="rubric-bar-fill" style="width:${(breakdown.accreditation/40)*100}%;background:var(--color-primary);"></div>
+            </div>
+            <span class="rubric-bar-score">${breakdown.accreditation ?? '—'}/40</span>
+          </div>
+          <div class="rubric-bar-item">
+            <span class="rubric-bar-label">Motivación y actividades (30 pts)</span>
+            <div class="rubric-bar-track">
+              <div class="rubric-bar-fill" style="width:${(breakdown.motivation/30)*100}%;background:#0e9f6e;"></div>
+            </div>
+            <span class="rubric-bar-score">${breakdown.motivation ?? '—'}/30</span>
+          </div>
+          <div class="rubric-bar-item">
+            <span class="rubric-bar-label">Datos institucionales (20 pts)</span>
+            <div class="rubric-bar-track">
+              <div class="rubric-bar-fill" style="width:${(breakdown.institution/20)*100}%;background:#d97706;"></div>
+            </div>
+            <span class="rubric-bar-score">${breakdown.institution ?? '—'}/20</span>
+          </div>
+          <div class="rubric-bar-item">
+            <span class="rubric-bar-label">Contacto y seriedad (10 pts)</span>
+            <div class="rubric-bar-track">
+              <div class="rubric-bar-fill" style="width:${(breakdown.contact/10)*100}%;background:#7c3aed;"></div>
+            </div>
+            <span class="rubric-bar-score">${breakdown.contact ?? '—'}/10</span>
+          </div>
+        </div>
+        ${app.ai_justification ? `<div class="ai-box">💬 ${app.ai_justification}</div>` : ''}
+      </div>
+      ` : ''}
+
+      <!-- Datos institución -->
+      <div class="detail-section">
+        <h3>Datos de la Institución</h3>
+        <div class="detail-grid">
+          <div class="detail-field"><label>Tipo</label><p>${app.institution_type || '—'}</p></div>
+          <div class="detail-field"><label>País</label><p>${app.country}</p></div>
+          <div class="detail-field"><label>Sitio web</label><p>${app.website ? `<a href="${app.website}" target="_blank">${app.website}</a>` : '—'}</p></div>
+          <div class="detail-field"><label>Año fundación</label><p>${app.founded_year || '—'}</p></div>
+          <div class="detail-field"><label>Estudiantes</label><p>${app.student_count?.toLocaleString() || '—'}</p></div>
+          <div class="detail-field"><label>Programas</label><p>${app.programs_count || '—'}</p></div>
+        </div>
+        <div style="margin-top:.75rem;">
+          <div class="detail-field"><label>Acreditaciones</label><p style="white-space:pre-line;">${app.accreditations || '—'}</p></div>
+        </div>
+      </div>
+
+      <!-- Contacto -->
+      <div class="detail-section">
+        <h3>Contacto Principal</h3>
+        <div class="detail-grid">
+          <div class="detail-field"><label>Nombre</label><p>${app.contact_name}</p></div>
+          <div class="detail-field"><label>Cargo</label><p>${app.contact_role}</p></div>
+          <div class="detail-field"><label>Email</label><p><a href="mailto:${app.contact_email}">${app.contact_email}</a></p></div>
+          <div class="detail-field"><label>Teléfono</label><p>${app.contact_phone || '—'}</p></div>
+        </div>
+      </div>
+
+      <!-- Motivación -->
+      <div class="detail-section">
+        <h3>Motivación</h3>
+        <p style="font-size:.9rem;line-height:1.7;">${app.motivation}</p>
+      </div>
+
+      <!-- Actividades -->
+      <div class="detail-section">
+        <h3>Actividades propuestas</h3>
+        <p style="font-size:.9rem;">${activities}</p>
+      </div>
+
+      <!-- Meta -->
+      <div class="detail-section" style="background:#f8fafc;">
+        <h3>Información del registro</h3>
+        <div class="detail-grid">
+          <div class="detail-field"><label>Postulado el</label><p>${new Date(app.created_at).toLocaleString('es')}</p></div>
+          <div class="detail-field"><label>Decisión IA</label><p>${app.ai_decision || '—'}</p></div>
+          <div class="detail-field"><label>Decisión final</label><p>${app.final_decision || '—'}</p></div>
+          <div class="detail-field"><label>ID</label><p style="font-family:monospace;font-size:.75rem;">${app.id}</p></div>
+        </div>
+      </div>
+
+    </div>
+  `;
+}
+
+// ── Decisión manual ────────────────────────────────────────────────
+function openDecisionModal(appId, decision) {
+  pendingDecision = { appId, decision };
+  const isApprove = decision === 'approved';
+  const app = allApplications.find(a => a.id === appId);
+
+  document.getElementById('decision-modal-title').textContent =
+    isApprove ? '✅ Aprobar postulación' : '❌ Rechazar postulación';
+  document.getElementById('decision-modal-body').textContent =
+    `¿Confirmas ${isApprove ? 'aprobar' : 'rechazar'} la postulación de ${app?.institution_name}?`;
+  document.getElementById('decision-notes').value = '';
+
+  const btn = document.getElementById('decision-confirm-btn');
+  btn.className = `btn ${isApprove ? 'btn-primary' : 'btn-danger'}`;
+  btn.textContent = isApprove ? 'Sí, aprobar' : 'Sí, rechazar';
+
+  document.getElementById('decision-modal').classList.add('open');
+}
+
+document.getElementById('decision-confirm-btn').addEventListener('click', async () => {
+  if (!pendingDecision) return;
+  const { appId, decision } = pendingDecision;
+  const notes = document.getElementById('decision-notes').value.trim();
+  const btn   = document.getElementById('decision-confirm-btn');
+
+  btn.disabled = true;
+  btn.textContent = '...';
+
+  const updates = {
+    final_decision: decision,
+    reviewed_at:    new Date().toISOString(),
+    final_notes:    notes || null
+  };
+
+  const { error } = await db.from('applications').update(updates).eq('id', appId);
+
+  if (error) {
+    toast('Error al guardar la decisión.', 'error');
+    btn.disabled = false;
+    return;
+  }
+
+  // Si se aprueba, crear institución si no existe
+  if (decision === 'approved') {
+    const app = allApplications.find(a => a.id === appId);
+    if (app && !app.institution_id) {
+      const { data: inst } = await db.from('institutions').insert({
+        name:          app.institution_name,
+        country:       app.country,
+        type:          app.institution_type,
+        website:       app.website,
+        founded_year:  app.founded_year,
+        student_count: app.student_count,
+        programs:      app.programs_count,
+        accreditations: app.accreditations,
+        status:        'approved'
+      }).select().single();
+
+      if (inst) {
+        await db.from('applications').update({ institution_id: inst.id }).eq('id', appId);
+      }
+    }
+  }
+
+  document.getElementById('decision-modal').classList.remove('open');
+  toast(`Postulación ${decision === 'approved' ? 'aprobada' : 'rechazada'} correctamente.`, 'success');
+
+  // Refrescar
+  await Promise.all([loadApplications(), loadStats()]);
+  pendingDecision = null;
+  btn.disabled = false;
+});
+
+// ── Instituciones ──────────────────────────────────────────────────
+async function loadInstitutions() {
+  const { data } = await db.from('institutions').select('*').order('created_at', { ascending: false });
+  const tbody = document.getElementById('institutions-tbody');
+  if (!data?.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--color-text-muted);">Sin instituciones</td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.map(i => `
+    <tr>
+      <td><strong>${i.name}</strong></td>
+      <td>${i.country}</td>
+      <td>${i.type}</td>
+      <td>${i.student_count?.toLocaleString() || '—'}</td>
+      <td>${{ approved:'<span class="badge badge-success">Activa</span>',
+               pending: '<span class="badge badge-warning">Pendiente</span>',
+               rejected:'<span class="badge badge-danger">Rechazada</span>' }[i.status]}</td>
+      <td>${new Date(i.created_at).toLocaleDateString('es')}</td>
+    </tr>
+  `).join('');
+}
+
+// ── Miembros ───────────────────────────────────────────────────────
+async function loadMembers() {
+  const { data } = await db.from('profiles')
+    .select('*, institutions(name)')
+    .order('created_at', { ascending: false });
+  const tbody = document.getElementById('members-tbody');
+  if (!data?.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--color-text-muted);">Sin miembros</td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.map(m => `
+    <tr>
+      <td><strong>${m.full_name}</strong></td>
+      <td>${m.email}</td>
+      <td>${m.institutions?.name || '—'}</td>
+      <td>${m.role_title || '—'}</td>
+      <td><span class="badge badge-info">${m.app_role}</span></td>
+      <td><span class="badge badge-gray">${(m.preferred_lang || 'es').toUpperCase()}</span></td>
+    </tr>
+  `).join('');
+}
+
+// ── Toast ──────────────────────────────────────────────────────────
+function toast(msg, type = 'info') {
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.textContent = msg;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+
+document.getElementById('decision-modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('decision-modal'))
+    document.getElementById('decision-modal').classList.remove('open');
+});
+</script>
+</body>
+</html>
