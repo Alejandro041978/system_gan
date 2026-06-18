@@ -196,10 +196,16 @@ document.getElementById('forgot-link').addEventListener('click', (e) => {
 document.getElementById('reset-btn').addEventListener('click', async () => {
   const email = document.getElementById('reset-email').value.trim();
   if (!email) return;
+  const btn = document.getElementById('reset-btn');
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
   const { error } = await Auth.resetPassword(email);
   if (!error) {
     document.getElementById('reset-msg').style.display = 'block';
-    document.getElementById('reset-btn').disabled = true;
+  } else {
+    alert('Error: ' + error.message);
+    btn.disabled = false;
+    btn.textContent = 'Enviar enlace';
   }
 });
 </script>
