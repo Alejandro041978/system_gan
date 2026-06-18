@@ -340,11 +340,12 @@
             <th>Cargo</th>
             <th>Rol</th>
             <th>Idioma</th>
+            <th>Último ingreso</th>
             <th></th>
           </tr>
         </thead>
         <tbody id="members-tbody">
-          <tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--color-text-muted);">Cargando...</td></tr>
+          <tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--color-text-muted);">Cargando...</td></tr>
         </tbody>
       </table>
     </div>
@@ -1027,16 +1028,26 @@ async function loadInstitutions() {
 
 // ── Miembros ───────────────────────────────────────────────────────
 async function loadMembers() {
-  const { data } = await db.from('profiles')
-    .select('*, institutions(name)')
-    .order('created_at', { ascending: false });
   const tbody = document.getElementById('members-tbody');
-  if (!data?.length) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--color-text-muted);">Sin miembros</td></tr>';
+  const session = await Auth.getSession();
+  const resp = await fetch('/api/get-members', {
+    headers: { Authorization: `Bearer ${session?.access_token}` },
+  });
+  if (!resp.ok) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--color-danger);">Error al cargar miembros.</td></tr>';
     return;
   }
-  window._allMembers = data;
-  tbody.innerHTML = data.map(m => `
+  const { members } = await resp.json();
+  if (!members?.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--color-text-muted);">Sin miembros</td></tr>';
+    return;
+  }
+  window._allMembers = members;
+  tbody.innerHTML = members.map(m => {
+    const lastLogin = m.last_login
+      ? new Date(m.last_login).toLocaleDateString('es', { day: '2-digit', month: 'short', year: 'numeric' })
+      : '—';
+    return `
     <tr>
       <td><strong>${m.full_name}</strong></td>
       <td style="font-size:.82rem;">${m.email}</td>
@@ -1044,9 +1055,10 @@ async function loadMembers() {
       <td>${m.role_title || '—'}</td>
       <td><span class="badge badge-info">${m.app_role}</span></td>
       <td><span class="badge badge-gray">${(m.preferred_lang || 'es').toUpperCase()}</span></td>
+      <td style="font-size:.82rem;color:var(--color-text-muted);">${lastLogin}</td>
       <td><button class="btn btn-outline btn-sm" onclick="openEditMemberModal('${m.id}')">✏️ Editar</button></td>
-    </tr>
-  `).join('');
+    </tr>`;
+  }).join('');
 }
 
 // ── Countdown helpers ──────────────────────────────────────────────
