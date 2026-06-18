@@ -110,6 +110,21 @@ img { max-width: 100%; display: block; }
   margin-left: 1rem;
 }
 
+.navbar-session a {
+  color: #cbd5e1;
+  padding: .4rem .75rem;
+  border-radius: var(--radius);
+  font-size: .9rem;
+  transition: background var(--transition), color var(--transition);
+  text-decoration: none;
+}
+
+.navbar-session a:hover,
+.navbar-session a.active {
+  background: rgba(255,255,255,.1);
+  color: #fff;
+}
+
 .lang-switcher {
   display: flex;
   gap: .25rem;
