@@ -1,7 +1,7 @@
 // POST /api/create-user
-// Crea un usuario en Supabase Auth y su perfil.
+// Crea un usuario en Supabase Auth y su perfil. Envía email de bienvenida.
 // super_admin: sin límite, puede asignar a cualquier institución.
-// institution_admin: máximo 10 usuarios por institución (contando todos los roles).
+// institution_admin: máximo 10 usuarios por institución.
 
 import { createClient } from '@supabase/supabase-js';
 import { sendEmail } from './_email.js';
@@ -15,8 +15,7 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   // ── 1. Verificar sesión del llamante ──────────────────────────────
-  const authHeader = req.headers.authorization || '';
-  const token = authHeader.replace('Bearer ', '');
+  const token = (req.headers.authorization || '').replace('Bearer ', '');
   if (!token) return res.status(401).json({ error: 'No autorizado' });
 
   const { data: { user: caller }, error: authErr } = await supabase.auth.getUser(token);
@@ -33,15 +32,13 @@ export default async function handler(req, res) {
   }
 
   const { full_name, email, role_title, app_role = 'member', institution_id, lang = 'es' } = req.body;
-
   if (!full_name || !email) return res.status(400).json({ error: 'Nombre y email son obligatorios' });
 
-  // ── 2. Validar institución ────────────────────────────────────────
+  // ── 2. Validar institución y permisos ─────────────────────────────
   const targetInstitutionId = callerProfile.app_role === 'institution_admin'
-    ? callerProfile.institution_id   // solo su propia institución
+    ? callerProfile.institution_id
     : institution_id || null;
 
-  // institution_admin: no puede crear super_admin
   if (callerProfile.app_role === 'institution_admin' && app_role === 'super_admin') {
     return res.status(403).json({ error: 'No puedes asignar el rol super_admin' });
   }
@@ -58,28 +55,23 @@ export default async function handler(req, res) {
     }
   }
 
-  // ── 4 & 5. Crear usuario + generar link de invitación en un solo paso
-  const appUrl = process.env.APP_URL || 'https://system.gan.education';
-  const { data: linkData, error: linkErr } = await supabase.auth.admin.generateLink({
-    type:  'invite',
+  // ── 4. Crear usuario (sin contraseña, acceso por OTP) ─────────────
+  const { data: userData, error: createErr } = await supabase.auth.admin.createUser({
     email,
-    options: {
-      data:       { full_name },
-      redirectTo: `${appUrl}/pages/set-password.html`,
-    },
+    email_confirm: true,
+    user_metadata: { full_name },
   });
 
-  if (linkErr) {
-    if (linkErr.message?.includes('already registered')) {
+  if (createErr) {
+    if (createErr.message?.includes('already registered')) {
       return res.status(409).json({ error: 'Ya existe un usuario con ese email' });
     }
-    return res.status(500).json({ error: 'Error al crear usuario: ' + linkErr.message });
+    return res.status(500).json({ error: 'Error al crear usuario: ' + createErr.message });
   }
 
-  const newUserId    = linkData.user.id;
-  const setPasswordUrl = linkData.properties?.action_link || `${appUrl}/pages/set-password.html`;
+  const newUserId = userData.user.id;
 
-  // ── 5. Crear/actualizar perfil ────────────────────────────────────
+  // ── 5. Crear perfil ───────────────────────────────────────────────
   await supabase.from('profiles').upsert({
     id:             newUserId,
     full_name,
@@ -91,28 +83,25 @@ export default async function handler(req, res) {
     is_visible:     true,
   });
 
-  // ── 7. Email de bienvenida ────────────────────────────────────────
+  // ── 6. Email de bienvenida ────────────────────────────────────────
+  const appUrl = process.env.APP_URL || 'https://system.gan.education';
   const copy = {
     es: { subject: 'Bienvenido/a a GAN System', title: '¡Tu cuenta está lista!',
       body: `Hola <strong>${full_name}</strong>,<br><br>
-        Se ha creado tu cuenta en <strong>GAN System</strong>. Haz clic en el botón de abajo para establecer tu contraseña y acceder a la plataforma.<br><br>
-        Este enlace expira en <strong>24 horas</strong>.`,
-      btn: 'Crear mi contraseña' },
+        Se ha creado tu cuenta en <strong>GAN System</strong>.<br><br>
+        Para acceder, ve a <a href="${appUrl}/pages/login.html">${appUrl}/pages/login.html</a>, ingresa tu correo electrónico y recibirás un código de 6 dígitos para entrar. Sin contraseña.` },
     en: { subject: 'Welcome to GAN System', title: 'Your account is ready!',
       body: `Hi <strong>${full_name}</strong>,<br><br>
-        Your account on <strong>GAN System</strong> has been created. Click the button below to set your password and access the platform.<br><br>
-        This link expires in <strong>24 hours</strong>.`,
-      btn: 'Set my password' },
+        Your account on <strong>GAN System</strong> has been created.<br><br>
+        To access, go to <a href="${appUrl}/pages/login.html">${appUrl}/pages/login.html</a>, enter your email and you will receive a 6-digit code to sign in. No password needed.` },
     pt: { subject: 'Bem-vindo/a ao GAN System', title: 'A sua conta está pronta!',
       body: `Olá <strong>${full_name}</strong>,<br><br>
-        A sua conta no <strong>GAN System</strong> foi criada. Clique no botão abaixo para definir a sua palavra-passe e aceder à plataforma.<br><br>
-        Este link expira em <strong>24 horas</strong>.`,
-      btn: 'Criar a minha palavra-passe' },
+        A sua conta no <strong>GAN System</strong> foi criada.<br><br>
+        Para aceder, vá a <a href="${appUrl}/pages/login.html">${appUrl}/pages/login.html</a>, insira o seu e-mail e receberá um código de 6 dígitos para entrar. Sem palavra-passe.` },
     fr: { subject: 'Bienvenue sur GAN System', title: 'Votre compte est prêt !',
       body: `Bonjour <strong>${full_name}</strong>,<br><br>
-        Votre compte sur <strong>GAN System</strong> a été créé. Cliquez sur le bouton ci-dessous pour définir votre mot de passe et accéder à la plateforme.<br><br>
-        Ce lien expire dans <strong>24 heures</strong>.`,
-      btn: 'Créer mon mot de passe' },
+        Votre compte sur <strong>GAN System</strong> a été créé.<br><br>
+        Pour accéder, rendez-vous sur <a href="${appUrl}/pages/login.html">${appUrl}/pages/login.html</a>, saisissez votre e-mail et vous recevrez un code à 6 chiffres pour vous connecter. Sans mot de passe.` },
   };
 
   const t = copy[lang] || copy.es;
@@ -129,8 +118,8 @@ export default async function handler(req, res) {
         <tr><td style="padding:1.5rem 2rem;color:#334155;font-size:.9375rem;line-height:1.7;">
           <p>${t.body}</p>
           <div style="text-align:center;margin:1.5rem 0;">
-            <a href="${setPasswordUrl}" style="background:#1a56db;color:#fff;padding:.75rem 2rem;border-radius:8px;text-decoration:none;font-weight:700;display:inline-block;">
-              ${t.btn} →
+            <a href="${appUrl}/pages/login.html" style="background:#1a56db;color:#fff;padding:.75rem 2rem;border-radius:8px;text-decoration:none;font-weight:700;display:inline-block;">
+              Acceder a GAN System →
             </a>
           </div>
         </td></tr>

@@ -45,18 +45,8 @@ const Auth = {
     return { session, profile };
   },
 
-  async signIn(email, password) {
-    return db.auth.signInWithPassword({ email, password });
-  },
-
   async signOut() {
     await db.auth.signOut();
     window.location.href = '/pages/login.html';
-  },
-
-  async resetPassword(email) {
-    return db.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/pages/set-password.html`
-    });
   }
 };
