@@ -19,10 +19,13 @@
   <div class="navbar-inner">
     <a href="/" class="navbar-brand">GAN <span>System</span></a>
     <ul class="navbar-nav">
-      <li><a href="/pages/instituciones.html">Instituciones</a></li><li><a href="/pages/portal.html" data-i18n="nav_portal"></a></li>
+      <li><a href="/pages/instituciones.html">Instituciones</a></li>
+      <li><a href="/pages/portal.html" data-i18n="nav_portal"></a></li>
       <li><a href="/pages/directorio.html" class="active" data-i18n="nav_directory"></a></li>
-      <li id="nav-admin-li" style="display:none;"><a href="/pages/admin.html" data-i18n="nav_admin"></a></li>
-      <li><span id="nav-hello" style="color:rgba(255,255,255,.7);font-size:.875rem;"></span></li><li><button id="nav-logout-btn" class="btn btn-ghost btn-sm" data-i18n="nav_logout"></button></li>
+      <li id="nav-admin-li" class="hidden"><a href="/pages/admin.html" data-i18n="nav_admin"></a></li>
+      <li id="nav-superadmin-li" class="hidden"><a href="/pages/superadmin.html">Panel Admin</a></li>
+      <li id="nav-hello-li" class="hidden"><span id="nav-hello" style="color:rgba(255,255,255,.7);font-size:.875rem;"></span></li>
+      <li><button id="nav-logout-btn" class="btn btn-ghost btn-sm" data-i18n="nav_logout"></button></li>
     </ul>
     <div class="lang-switcher">
       <button data-lang-btn="es">ES</button>
@@ -104,8 +107,13 @@ let allMembers = [];
   if (!result) return;
 
   const profile = result.profile;
-  if (profile?.app_role === 'institution_admin' || profile?.app_role === 'super_admin') {
-    document.getElementById('nav-admin-li').style.display = '';
+  const firstName = (profile?.full_name || '').split(' ')[0];
+  document.getElementById('nav-hello-li').classList.remove('hidden');
+  if (firstName) document.getElementById('nav-hello').textContent = `Hola, ${firstName}`;
+  if (profile?.app_role === 'institution_admin') document.getElementById('nav-admin-li').classList.remove('hidden');
+  if (profile?.app_role === 'super_admin') {
+    document.getElementById('nav-admin-li').classList.remove('hidden');
+    document.getElementById('nav-superadmin-li').classList.remove('hidden');
   }
 
   document.getElementById('nav-logout-btn').addEventListener('click', () => Auth.signOut());
@@ -195,8 +203,8 @@ function renderMembers(members) {
         ${avatarHTML}
         <div class="member-name">${m.full_name}</div>
         <div class="member-role">${m.role_title || '—'}</div>
-        <div class="member-institution">${m.institutions?.name || ''}</div>
-        ${m.institutions?.country ? `<div style="font-size:.75rem;color:var(--color-text-muted);margin-top:.2rem;">🌍 ${m.institutions.country}</div>` : ''}
+        <div class="member-institution">${m.institutions?.name || 'Global Academic Network'}</div>
+        ${m.institutions?.country ? `<div style="font-size:.75rem;color:var(--color-text-muted);margin-top:.2rem;">🌍 ${m.institutions.country}</div>` : (!m.institution_id ? `<div style="font-size:.75rem;color:var(--color-text-muted);margin-top:.2rem;">🌐 Internacional</div>` : '')}
         <div class="member-actions" style="margin-top:.75rem;">
           ${m.email    ? `<a href="mailto:${m.email}" class="btn btn-outline btn-sm" onclick="event.stopPropagation()" data-i18n="dir_contact" title="${m.email}">✉️</a>` : ''}
           ${m.linkedin_url ? `<a href="${m.linkedin_url}" target="_blank" rel="noopener" class="btn btn-ghost btn-sm" onclick="event.stopPropagation()">LinkedIn</a>` : ''}
@@ -216,7 +224,9 @@ function openMemberModal(memberId) {
     ? `<img src="${m.avatar_url}" style="width:90px;height:90px;border-radius:50%;object-fit:cover;margin:0 auto;" alt="">`
     : `<div style="width:90px;height:90px;border-radius:50%;background:var(--color-primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;margin:0 auto;">${initials}</div>`;
   document.getElementById('member-modal-role').textContent        = m.role_title || '';
-  document.getElementById('member-modal-institution').textContent = m.institutions?.name + (m.institutions?.country ? ` · ${m.institutions.country}` : '');
+  const instName = m.institutions?.name || 'Global Academic Network';
+  const instCountry = m.institutions?.country || (!m.institution_id ? 'Internacional' : '');
+  document.getElementById('member-modal-institution').textContent = instName + (instCountry ? ` · ${instCountry}` : '');
   document.getElementById('member-modal-bio').textContent         = m.bio || '';
 
   const actions = document.getElementById('member-modal-actions');
