@@ -17,10 +17,12 @@
       const hash = window.location.hash.substring(1);
       const params = new URLSearchParams(hash);
       const type = params.get('type');
-      if (type === 'recovery' || type === 'invite') {
+      const accessToken = params.get('access_token');
+      // Redirigir si hay un token de auth (invite/recovery/magiclink) — Supabase a veces omite type
+      if (accessToken || type === 'recovery' || type === 'invite' || type === 'magiclink') {
         window.location.replace('/pages/set-password.html' + window.location.hash);
+        return;
       }
-      // Si hay error de auth en el hash, limpiar y seguir
       if (params.get('error')) {
         window.location.replace('/pages/login.html');
       }
