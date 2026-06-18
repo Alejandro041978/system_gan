@@ -84,14 +84,8 @@
     <a href="/" class="navbar-brand">GAN <span>System</span></a>
     <ul class="navbar-nav">
       <li><a href="/pages/instituciones.html" class="active">Instituciones</a></li>
-      <li id="nav-apply-li"><a href="/pages/postulacion.html" data-i18n="nav_apply"></a></li>
-      <li id="nav-login-li"><a href="/pages/login.html" id="nav-login-link" data-i18n="nav_login"></a></li>
-      <li id="nav-portal-li" class="hidden"><a href="/pages/portal.html" data-i18n="nav_portal"></a></li>
-      <li id="nav-dir-li" class="hidden"><a href="/pages/directorio.html" data-i18n="nav_directory"></a></li>
-      <li id="nav-admin-li" class="hidden"><a href="/pages/admin.html" data-i18n="nav_admin"></a></li>
-      <li id="nav-superadmin-li" class="hidden"><a href="/pages/superadmin.html">Panel Admin</a></li>
-      <li id="nav-hello-li" class="hidden"><span id="nav-hello" style="color:rgba(255,255,255,.7);font-size:.875rem;"></span></li>
-      <li id="nav-logout-li" class="hidden"><button id="nav-logout-btn" class="btn btn-ghost btn-sm" data-i18n="nav_logout"></button></li>
+      <li><a href="/pages/portal.html" data-i18n="nav_portal"></a></li>
+      <li><a href="/pages/directorio.html" data-i18n="nav_directory"></a></li>
     </ul>
     <div class="lang-switcher">
       <button data-lang-btn="es">ES</button>
@@ -99,6 +93,14 @@
       <button data-lang-btn="pt">PT</button>
       <button data-lang-btn="fr">FR</button>
     </div>
+    <ul class="navbar-session">
+      <li id="nav-apply-li"><a href="/pages/postulacion.html" data-i18n="nav_apply"></a></li>
+      <li id="nav-login-li"><a href="/pages/login.html" id="nav-login-link" data-i18n="nav_login"></a></li>
+      <li id="nav-admin-li" class="hidden"><a href="/pages/admin.html" data-i18n="nav_admin"></a></li>
+      <li id="nav-superadmin-li" class="hidden"><a href="/pages/superadmin.html">Panel Admin</a></li>
+      <li id="nav-hello-li" class="hidden"><span id="nav-hello" style="color:rgba(255,255,255,.7);font-size:.875rem;"></span></li>
+      <li id="nav-logout-li" class="hidden"><button id="nav-logout-btn" class="btn btn-ghost btn-sm" data-i18n="nav_logout"></button></li>
+    </ul>
   </div>
 </nav>
 
@@ -177,8 +179,6 @@ const TYPE_CLASS = {
     const firstName = (profile?.full_name || '').split(' ')[0];
     document.getElementById('nav-apply-li').classList.add('hidden');
     document.getElementById('nav-login-li').classList.add('hidden');
-    document.getElementById('nav-portal-li').classList.remove('hidden');
-    document.getElementById('nav-dir-li').classList.remove('hidden');
     document.getElementById('nav-hello-li').classList.remove('hidden');
     document.getElementById('nav-logout-li').classList.remove('hidden');
     if (firstName) document.getElementById('nav-hello').textContent = `Hola, ${firstName}`;

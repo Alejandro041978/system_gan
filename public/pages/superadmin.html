@@ -163,10 +163,9 @@
   <div class="navbar-inner">
     <a href="/" class="navbar-brand">GAN <span>System</span></a>
     <ul class="navbar-nav">
-      <li><a href="/pages/superadmin.html" class="active">Admin</a></li>
+      <li><a href="/pages/instituciones.html">Instituciones</a></li>
       <li><a href="/pages/portal.html" data-i18n="nav_portal"></a></li>
       <li><a href="/pages/directorio.html" data-i18n="nav_directory"></a></li>
-      <li><span id="nav-hello" style="color:rgba(255,255,255,.7);font-size:.875rem;"></span></li><li><button id="nav-logout-btn" class="btn btn-ghost btn-sm" data-i18n="nav_logout"></button></li>
     </ul>
     <div class="lang-switcher">
       <button data-lang-btn="es">ES</button>
@@ -174,6 +173,11 @@
       <button data-lang-btn="pt">PT</button>
       <button data-lang-btn="fr">FR</button>
     </div>
+    <ul class="navbar-session">
+      <li><a href="/pages/superadmin.html" class="active">Panel Admin</a></li>
+      <li id="nav-hello-li" class="hidden"><span id="nav-hello" style="color:rgba(255,255,255,.7);font-size:.875rem;"></span></li>
+      <li><button id="nav-logout-btn" class="btn btn-ghost btn-sm" data-i18n="nav_logout"></button></li>
+    </ul>
   </div>
 </nav>
 
@@ -230,6 +234,7 @@
     <button class="tab-btn active" data-tab="applications">Postulaciones</button>
     <button class="tab-btn" data-tab="institutions">Instituciones</button>
     <button class="tab-btn" data-tab="members">Miembros</button>
+    <button class="tab-btn" data-tab="benefits">Beneficios</button>
   </div>
 
   <!-- TAB: POSTULACIONES -->
@@ -293,8 +298,38 @@
     </div>
   </div>
 
+  <!-- TAB: BENEFICIOS -->
+  <div id="tab-benefits" style="display:none;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
+      <p style="color:var(--color-text-muted);font-size:.875rem;">Gestiona los beneficios disponibles para los miembros de GAN.</p>
+      <button class="btn btn-primary btn-sm" onclick="openBenefitModal()">+ Nuevo beneficio</button>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <table class="users-table">
+        <thead>
+          <tr>
+            <th>Título</th>
+            <th>Proveedor</th>
+            <th>Categoría</th>
+            <th>Descuento</th>
+            <th>Válido hasta</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="benefits-tbody">
+          <tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--color-text-muted);">Cargando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
   <!-- TAB: MIEMBROS -->
   <div id="tab-members" style="display:none;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
+      <p style="color:var(--color-text-muted);font-size:.875rem;">Todos los usuarios registrados en GAN System.</p>
+      <button class="btn btn-primary btn-sm" onclick="openUserModal()">+ Nuevo usuario</button>
+    </div>
     <div class="card" style="padding:0; overflow:hidden;">
       <table class="users-table">
         <thead>
@@ -305,15 +340,243 @@
             <th>Cargo</th>
             <th>Rol</th>
             <th>Idioma</th>
+            <th></th>
           </tr>
         </thead>
         <tbody id="members-tbody">
-          <tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--color-text-muted);">Cargando...</td></tr>
+          <tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--color-text-muted);">Cargando...</td></tr>
         </tbody>
       </table>
     </div>
   </div>
 
+</div>
+
+<!-- MODAL: Editar miembro -->
+<div class="modal-overlay" id="edit-member-modal">
+  <div class="modal" style="max-width:500px;width:95%;">
+    <div class="modal-header">
+      <span class="modal-title">Editar miembro</span>
+      <button class="modal-close" onclick="closeEditMemberModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="em-id">
+      <div class="form-group">
+        <label class="form-label">Nombre completo</label>
+        <input id="em-name" class="form-input">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+        <div class="form-group">
+          <label class="form-label">Cargo</label>
+          <input id="em-role-title" class="form-input" placeholder="Ej: Director de Calidad">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Rol en el sistema</label>
+          <select id="em-app-role" class="form-select">
+            <option value="member">Miembro</option>
+            <option value="institution_admin">Admin institución</option>
+            <option value="super_admin">Super admin</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Institución</label>
+        <select id="em-institution" class="form-select">
+          <option value="">— Sin institución (GAN) —</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Idioma preferido</label>
+        <select id="em-lang" class="form-select">
+          <option value="es">Español</option>
+          <option value="en">English</option>
+          <option value="pt">Português</option>
+          <option value="fr">Français</option>
+        </select>
+      </div>
+      <div class="form-group" style="display:flex;align-items:center;gap:.75rem;">
+        <input id="em-visible" type="checkbox" style="width:18px;height:18px;cursor:pointer;">
+        <label for="em-visible" style="cursor:pointer;font-weight:600;">Visible en el directorio</label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeEditMemberModal()">Cancelar</button>
+      <button class="btn btn-primary" id="em-save-btn" onclick="saveEditMember()">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Nuevo usuario -->
+<div class="modal-overlay" id="user-modal">
+  <div class="modal" style="max-width:520px;width:95%;">
+    <div class="modal-header">
+      <span class="modal-title">Nuevo usuario</span>
+      <button class="modal-close" onclick="closeUserModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Nombre completo *</label>
+        <input id="usr-name" class="form-input" placeholder="Ej: María González">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email institucional *</label>
+        <input id="usr-email" class="form-input" type="email" placeholder="usuario@institucion.edu">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+        <div class="form-group">
+          <label class="form-label">Cargo</label>
+          <input id="usr-role-title" class="form-input" placeholder="Ej: Directora de Calidad">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Rol en el sistema</label>
+          <select id="usr-app-role" class="form-select">
+            <option value="member">Miembro</option>
+            <option value="institution_admin">Admin institución</option>
+            <option value="super_admin">Super admin</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Institución</label>
+        <select id="usr-institution" class="form-select">
+          <option value="">— Sin institución (GAN) —</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Idioma preferido</label>
+        <select id="usr-lang" class="form-select">
+          <option value="es">Español</option>
+          <option value="en">English</option>
+          <option value="pt">Português</option>
+          <option value="fr">Français</option>
+        </select>
+      </div>
+      <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:var(--radius);padding:.875rem 1rem;font-size:.8rem;color:#1e40af;line-height:1.5;">
+        📧 Se enviará un email de bienvenida al usuario con un enlace para que establezca su contraseña.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeUserModal()">Cancelar</button>
+      <button class="btn btn-primary" id="user-save-btn" onclick="saveUser()">Crear usuario</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Beneficio -->
+<div class="modal-overlay" id="benefit-modal">
+  <div class="modal" style="max-width:680px;width:95%;">
+    <div class="modal-header">
+      <span class="modal-title" id="benefit-modal-title">Nuevo beneficio</span>
+      <button class="modal-close" onclick="closeBenefitModal()">✕</button>
+    </div>
+    <div class="modal-body" style="max-height:70vh;overflow-y:auto;">
+
+      <!-- Idiomas -->
+      <div style="margin-bottom:1.25rem;">
+        <div class="tabs" style="margin-bottom:1rem;">
+          <button class="tab-btn active" data-lang-tab="es">🇪🇸 Español</button>
+          <button class="tab-btn" data-lang-tab="en">🇺🇸 English</button>
+          <button class="tab-btn" data-lang-tab="pt">🇧🇷 Português</button>
+          <button class="tab-btn" data-lang-tab="fr">🇫🇷 Français</button>
+        </div>
+        <div id="lang-panel-es">
+          <div class="form-group"><label class="form-label">Título (ES)</label><input id="bf-title-es" class="form-input" placeholder="Ej: Acceso gratuito a Coursera"></div>
+          <div class="form-group"><label class="form-label">Descripción (ES)</label><textarea id="bf-desc-es" class="form-textarea" rows="3" placeholder="Descripción del beneficio en español..."></textarea></div>
+        </div>
+        <div id="lang-panel-en" style="display:none;">
+          <div class="form-group"><label class="form-label">Title (EN)</label><input id="bf-title-en" class="form-input" placeholder="E.g. Free access to Coursera"></div>
+          <div class="form-group"><label class="form-label">Description (EN)</label><textarea id="bf-desc-en" class="form-textarea" rows="3" placeholder="Benefit description in English..."></textarea></div>
+        </div>
+        <div id="lang-panel-pt" style="display:none;">
+          <div class="form-group"><label class="form-label">Título (PT)</label><input id="bf-title-pt" class="form-input" placeholder="Ex: Acesso gratuito ao Coursera"></div>
+          <div class="form-group"><label class="form-label">Descrição (PT)</label><textarea id="bf-desc-pt" class="form-textarea" rows="3" placeholder="Descrição do benefício em português..."></textarea></div>
+        </div>
+        <div id="lang-panel-fr" style="display:none;">
+          <div class="form-group"><label class="form-label">Titre (FR)</label><input id="bf-title-fr" class="form-input" placeholder="Ex: Accès gratuit à Coursera"></div>
+          <div class="form-group"><label class="form-label">Description (FR)</label><textarea id="bf-desc-fr" class="form-textarea" rows="3" placeholder="Description du bénéfice en français..."></textarea></div>
+        </div>
+      </div>
+
+      <hr style="border:none;border-top:1px solid var(--color-border);margin:1.25rem 0;">
+
+      <!-- Logo del proveedor -->
+      <div class="form-group">
+        <label class="form-label">Logo del proveedor</label>
+        <div style="display:flex;align-items:center;gap:1rem;margin-top:.25rem;">
+          <div id="bf-logo-preview" style="width:80px;height:80px;border-radius:12px;border:2px dashed var(--color-border);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;background:#f8fafc;">
+            <span style="font-size:1.5rem;color:var(--color-text-muted);">🖼️</span>
+          </div>
+          <div>
+            <label for="bf-logo-input" class="btn btn-outline btn-sm" style="cursor:pointer;display:inline-block;">
+              📁 Seleccionar imagen
+            </label>
+            <input type="file" id="bf-logo-input" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;" onchange="handleLogoSelect(this)">
+            <p style="font-size:.75rem;color:var(--color-text-muted);margin-top:.4rem;line-height:1.4;">
+              Tamaño recomendado: <strong>200 × 200 px</strong> (cuadrado)<br>
+              Formatos: PNG, JPG, WebP, SVG · Máx. 500 KB
+            </p>
+            <p id="bf-logo-name" style="font-size:.75rem;color:var(--color-primary);margin-top:.2rem;display:none;"></p>
+          </div>
+        </div>
+        <input type="hidden" id="bf-logo-url">
+      </div>
+
+      <hr style="border:none;border-top:1px solid var(--color-border);margin:1.25rem 0;">
+
+      <!-- Datos comunes -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+        <div class="form-group">
+          <label class="form-label">Proveedor *</label>
+          <input id="bf-provider" class="form-input" placeholder="Ej: Coursera, Microsoft...">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Categoría *</label>
+          <select id="bf-category" class="form-select">
+            <option value="software">💻 Software</option>
+            <option value="courses">🎓 Cursos</option>
+            <option value="titles">🎓 Títulos</option>
+            <option value="travel">✈️ Viajes</option>
+            <option value="books">📚 Libros</option>
+            <option value="events">🎟️ Eventos</option>
+            <option value="other">🔹 Otro</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">% Descuento (0 = gratuito)</label>
+          <input id="bf-discount" class="form-input" type="number" min="0" max="100" placeholder="Ej: 30">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Código de descuento</label>
+          <input id="bf-code" class="form-input" placeholder="Ej: GAN2026">
+        </div>
+        <div class="form-group" style="grid-column:1/-1;">
+          <label class="form-label">URL de canje</label>
+          <input id="bf-link" class="form-input" type="url" placeholder="https://...">
+        </div>
+        <div class="form-group" style="grid-column:1/-1;">
+          <label class="form-label">Email de contacto del proveedor</label>
+          <input id="bf-provider-email" class="form-input" type="email" placeholder="contacto@proveedor.com">
+          <p style="font-size:.75rem;color:var(--color-text-muted);margin-top:.3rem;">Cuando un miembro solicite este beneficio, este email recibirá la notificación junto con GAN.</p>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Válido hasta</label>
+          <input id="bf-valid-until" class="form-input" type="date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Máximo de canjes (vacío = ilimitado)</label>
+          <input id="bf-max-claims" class="form-input" type="number" min="1" placeholder="Ilimitado">
+        </div>
+        <div class="form-group" style="grid-column:1/-1;display:flex;align-items:center;gap:.75rem;">
+          <input id="bf-active" type="checkbox" checked style="width:18px;height:18px;cursor:pointer;">
+          <label for="bf-active" style="cursor:pointer;font-weight:600;">Beneficio activo (visible para miembros)</label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeBenefitModal()">Cancelar</button>
+      <button class="btn btn-primary" id="benefit-save-btn" onclick="saveBenefit()">Guardar beneficio</button>
+    </div>
+  </div>
 </div>
 
 <!-- MODAL: Confirmar decisión -->
@@ -353,6 +616,12 @@ let pendingDecision = null;
   const result = await Auth.requireAuth(['super_admin']);
   if (!result) return;
 
+  const firstName = (result.profile?.full_name || '').split(' ')[0];
+  if (firstName) {
+    document.getElementById('nav-hello').textContent = `Hola, ${firstName}`;
+    document.getElementById('nav-hello-li').classList.remove('hidden');
+  }
+
   document.getElementById('nav-logout-btn').addEventListener('click', () => Auth.signOut());
 
   await Promise.all([loadStats(), loadApplications()]);
@@ -362,11 +631,12 @@ let pendingDecision = null;
     btn.addEventListener('click', () => {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      ['applications','institutions','members'].forEach(t => {
+      ['applications','institutions','members','benefits'].forEach(t => {
         document.getElementById(`tab-${t}`).style.display = t === btn.dataset.tab ? '' : 'none';
       });
       if (btn.dataset.tab === 'institutions') loadInstitutions();
       if (btn.dataset.tab === 'members')      loadMembers();
+      if (btn.dataset.tab === 'benefits')     loadBenefits();
     });
   });
 
@@ -765,14 +1035,16 @@ async function loadMembers() {
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--color-text-muted);">Sin miembros</td></tr>';
     return;
   }
+  window._allMembers = data;
   tbody.innerHTML = data.map(m => `
     <tr>
       <td><strong>${m.full_name}</strong></td>
-      <td>${m.email}</td>
+      <td style="font-size:.82rem;">${m.email}</td>
       <td>${m.institutions?.name || '—'}</td>
       <td>${m.role_title || '—'}</td>
       <td><span class="badge badge-info">${m.app_role}</span></td>
       <td><span class="badge badge-gray">${(m.preferred_lang || 'es').toUpperCase()}</span></td>
+      <td><button class="btn btn-outline btn-sm" onclick="openEditMemberModal('${m.id}')">✏️ Editar</button></td>
     </tr>
   `).join('');
 }
@@ -800,6 +1072,340 @@ function formatNotifyAt(app) {
   const m  = Math.floor((ms % 3600000) / 60000);
   return `&#128231; Notificación al postulante en ${h}h ${m}m &nbsp;(${d.toLocaleString('es')})`;
 }
+
+// ── Editar miembro ─────────────────────────────────────────────────
+async function openEditMemberModal(id) {
+  const m = window._allMembers?.find(x => x.id === id);
+  if (!m) return;
+
+  // Cargar instituciones si aún no están
+  if (!_allInstitutions.length) {
+    const { data } = await db.from('institutions').select('id, name').eq('status', 'approved').order('name');
+    _allInstitutions = data || [];
+    const sel = document.getElementById('em-institution');
+    _allInstitutions.forEach(inst => {
+      const opt = document.createElement('option');
+      opt.value = inst.id; opt.textContent = inst.name;
+      sel.appendChild(opt);
+    });
+  }
+
+  document.getElementById('em-id').value            = m.id;
+  document.getElementById('em-name').value          = m.full_name || '';
+  document.getElementById('em-role-title').value    = m.role_title || '';
+  document.getElementById('em-app-role').value      = m.app_role || 'member';
+  document.getElementById('em-institution').value   = m.institution_id || '';
+  document.getElementById('em-lang').value          = m.preferred_lang || 'es';
+  document.getElementById('em-visible').checked     = m.is_visible !== false;
+  document.getElementById('edit-member-modal').classList.add('open');
+}
+
+function closeEditMemberModal() {
+  document.getElementById('edit-member-modal').classList.remove('open');
+}
+
+async function saveEditMember() {
+  const id         = document.getElementById('em-id').value;
+  const full_name  = document.getElementById('em-name').value.trim();
+  if (!full_name) { toast('El nombre es obligatorio.', 'error'); return; }
+
+  const btn = document.getElementById('em-save-btn');
+  btn.disabled = true; btn.textContent = 'Guardando...';
+
+  const { error } = await db.from('profiles').update({
+    full_name,
+    role_title:     document.getElementById('em-role-title').value.trim() || null,
+    app_role:       document.getElementById('em-app-role').value,
+    institution_id: document.getElementById('em-institution').value || null,
+    preferred_lang: document.getElementById('em-lang').value,
+    is_visible:     document.getElementById('em-visible').checked,
+  }).eq('id', id);
+
+  btn.disabled = false; btn.textContent = 'Guardar cambios';
+
+  if (error) { toast('Error al guardar: ' + error.message, 'error'); return; }
+
+  toast('Miembro actualizado.', 'success');
+  closeEditMemberModal();
+  await loadMembers();
+}
+
+document.getElementById('edit-member-modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('edit-member-modal')) closeEditMemberModal();
+});
+
+// ── Usuarios ───────────────────────────────────────────────────────
+let _allInstitutions = [];
+
+async function openUserModal() {
+  // Cargar instituciones si no están cargadas
+  if (!_allInstitutions.length) {
+    const { data } = await db.from('institutions').select('id, name').eq('status', 'approved').order('name');
+    _allInstitutions = data || [];
+    const sel = document.getElementById('usr-institution');
+    _allInstitutions.forEach(inst => {
+      const opt = document.createElement('option');
+      opt.value = inst.id;
+      opt.textContent = inst.name;
+      sel.appendChild(opt);
+    });
+  }
+  document.getElementById('usr-name').value       = '';
+  document.getElementById('usr-email').value      = '';
+  document.getElementById('usr-role-title').value = '';
+  document.getElementById('usr-app-role').value   = 'member';
+  document.getElementById('usr-institution').value = '';
+  document.getElementById('usr-lang').value       = 'es';
+  document.getElementById('user-modal').classList.add('open');
+}
+
+function closeUserModal() {
+  document.getElementById('user-modal').classList.remove('open');
+}
+
+async function saveUser() {
+  const full_name      = document.getElementById('usr-name').value.trim();
+  const email          = document.getElementById('usr-email').value.trim();
+  const role_title     = document.getElementById('usr-role-title').value.trim();
+  const app_role       = document.getElementById('usr-app-role').value;
+  const institution_id = document.getElementById('usr-institution').value || null;
+  const lang           = document.getElementById('usr-lang').value;
+
+  if (!full_name || !email) { toast('Nombre y email son obligatorios.', 'error'); return; }
+
+  const btn = document.getElementById('user-save-btn');
+  btn.disabled = true; btn.textContent = 'Creando...';
+
+  const session = await Auth.getSession();
+  const res = await fetch('/api/create-user', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${session.access_token}`,
+    },
+    body: JSON.stringify({ full_name, email, role_title, app_role, institution_id, lang }),
+  });
+
+  const json = await res.json();
+  btn.disabled = false; btn.textContent = 'Crear usuario';
+
+  if (!res.ok) { toast(json.error || 'Error al crear usuario.', 'error'); return; }
+
+  toast(`Usuario ${full_name} creado. Se envió email de bienvenida.`, 'success');
+  closeUserModal();
+  await loadMembers();
+}
+
+document.getElementById('user-modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('user-modal')) closeUserModal();
+});
+
+// ── Beneficios ─────────────────────────────────────────────────────
+let editingBenefitId = null;
+
+async function loadBenefits() {
+  const { data, error } = await db.from('benefits').select('*').order('created_at', { ascending: false });
+  window._allBenefits = data || [];
+  const tbody = document.getElementById('benefits-tbody');
+  if (error || !data?.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--color-text-muted);">Sin beneficios. Crea el primero con el botón de arriba.</td></tr>';
+    return;
+  }
+  const categoryLabel = { software:'💻 Software', courses:'🎓 Cursos', titles:'🏅 Títulos', travel:'✈️ Viajes', books:'📚 Libros', events:'🎟️ Eventos', other:'🔹 Otro' };
+  tbody.innerHTML = data.map(b => `
+    <tr>
+      <td><strong>${b.title_es}</strong></td>
+      <td>${b.provider_name}</td>
+      <td>${categoryLabel[b.category] || b.category}</td>
+      <td>${b.discount_pct != null ? (b.discount_pct === 0 ? 'Gratuito' : b.discount_pct + '%') : '—'}</td>
+      <td>${b.valid_until ? new Date(b.valid_until + 'T00:00:00').toLocaleDateString('es') : '—'}</td>
+      <td>${b.is_active ? '<span class="badge badge-success">Activo</span>' : '<span class="badge badge-gray">Inactivo</span>'}</td>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-outline btn-sm" onclick="openBenefitModal('${b.id}')">✏️ Editar</button>
+        <button class="btn btn-ghost btn-sm" style="color:var(--color-danger);" onclick="deleteBenefit('${b.id}','${b.title_es.replace(/'/g,"\\'")}')">🗑️</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function openBenefitModal(id) {
+  editingBenefitId = id || null;
+  document.getElementById('benefit-modal-title').textContent = id ? 'Editar beneficio' : 'Nuevo beneficio';
+
+  // Reset form
+  pendingLogoFile = null;
+  document.getElementById('bf-logo-input').value  = '';
+  document.getElementById('bf-logo-url').value    = '';
+  document.getElementById('bf-logo-name').style.display = 'none';
+  document.getElementById('bf-logo-preview').innerHTML = '<span style="font-size:1.5rem;color:var(--color-text-muted);">🖼️</span>';
+  ['es','en','pt','fr'].forEach(l => {
+    document.getElementById(`bf-title-${l}`).value = '';
+    document.getElementById(`bf-desc-${l}`).value  = '';
+  });
+  document.getElementById('bf-provider').value    = '';
+  document.getElementById('bf-category').value    = 'software';
+  document.getElementById('bf-discount').value    = '';
+  document.getElementById('bf-code').value        = '';
+  document.getElementById('bf-link').value        = '';
+  document.getElementById('bf-valid-until').value = '';
+  document.getElementById('bf-max-claims').value  = '';
+  document.getElementById('bf-active').checked         = true;
+  document.getElementById('bf-provider-email').value   = '';
+
+  // Reset lang tabs
+  document.querySelectorAll('[data-lang-tab]').forEach(b => b.classList.remove('active'));
+  document.querySelector('[data-lang-tab="es"]').classList.add('active');
+  ['es','en','pt','fr'].forEach(l => document.getElementById(`lang-panel-${l}`).style.display = l === 'es' ? '' : 'none');
+
+  if (id) {
+    const benefit = window._allBenefits?.find(b => b.id === id);
+    if (benefit) {
+      ['es','en','pt','fr'].forEach(l => {
+        document.getElementById(`bf-title-${l}`).value = benefit[`title_${l}`]    || '';
+        document.getElementById(`bf-desc-${l}`).value  = benefit[`description_${l}`] || '';
+      });
+      document.getElementById('bf-provider').value    = benefit.provider_name   || '';
+      document.getElementById('bf-category').value    = benefit.category        || 'software';
+      document.getElementById('bf-discount').value    = benefit.discount_pct    ?? '';
+      document.getElementById('bf-code').value        = benefit.code            || '';
+      document.getElementById('bf-link').value        = benefit.link            || '';
+      document.getElementById('bf-valid-until').value = benefit.valid_until     || '';
+      document.getElementById('bf-max-claims').value  = benefit.max_claims      || '';
+      document.getElementById('bf-active').checked         = benefit.is_active;
+      document.getElementById('bf-provider-email').value   = benefit.provider_email || '';
+      if (benefit.provider_logo) {
+        document.getElementById('bf-logo-url').value = benefit.provider_logo;
+        document.getElementById('bf-logo-preview').innerHTML =
+          `<img src="${benefit.provider_logo}" style="width:100%;height:100%;object-fit:contain;border-radius:10px;">`;
+      }
+    }
+  }
+
+  document.getElementById('benefit-modal').classList.add('open');
+}
+
+function closeBenefitModal() {
+  document.getElementById('benefit-modal').classList.remove('open');
+  editingBenefitId = null;
+}
+
+async function saveBenefit() {
+  const titleEs = document.getElementById('bf-title-es').value.trim();
+  const titleEn = document.getElementById('bf-title-en').value.trim();
+  const titlePt = document.getElementById('bf-title-pt').value.trim();
+  const titleFr = document.getElementById('bf-title-fr').value.trim();
+  const provider = document.getElementById('bf-provider').value.trim();
+
+  if (!titleEs || !provider) {
+    toast('El título en español y el proveedor son obligatorios.', 'error');
+    return;
+  }
+  if (!titleEn) { document.getElementById('bf-title-en').value = titleEs; }
+  if (!titlePt) { document.getElementById('bf-title-pt').value = titleEs; }
+  if (!titleFr) { document.getElementById('bf-title-fr').value = titleEs; }
+
+  const btn = document.getElementById('benefit-save-btn');
+  btn.disabled = true; btn.textContent = 'Guardando...';
+
+  // Si hay imagen pendiente, subir primero (usamos un ID temporal si es nuevo)
+  const tempId = editingBenefitId || crypto.randomUUID();
+  const logoUrl = await uploadLogo(tempId);
+
+  const payload = {
+    title_es:       document.getElementById('bf-title-es').value.trim(),
+    title_en:       document.getElementById('bf-title-en').value.trim() || titleEs,
+    title_pt:       document.getElementById('bf-title-pt').value.trim() || titleEs,
+    title_fr:       document.getElementById('bf-title-fr').value.trim() || titleEs,
+    description_es: document.getElementById('bf-desc-es').value.trim(),
+    description_en: document.getElementById('bf-desc-en').value.trim(),
+    description_pt: document.getElementById('bf-desc-pt').value.trim(),
+    description_fr: document.getElementById('bf-desc-fr').value.trim(),
+    provider_name:  provider,
+    category:       document.getElementById('bf-category').value,
+    discount_pct:   document.getElementById('bf-discount').value !== '' ? parseInt(document.getElementById('bf-discount').value) : null,
+    code:           document.getElementById('bf-code').value.trim()        || null,
+    link:           document.getElementById('bf-link').value.trim()        || null,
+    valid_until:    document.getElementById('bf-valid-until').value        || null,
+    max_claims:     document.getElementById('bf-max-claims').value !== '' ? parseInt(document.getElementById('bf-max-claims').value) : null,
+    is_active:       document.getElementById('bf-active').checked,
+    provider_logo:   logoUrl,
+    provider_email:  document.getElementById('bf-provider-email').value.trim() || null,
+  };
+
+  const { error } = editingBenefitId
+    ? await db.from('benefits').update(payload).eq('id', editingBenefitId)
+    : await db.from('benefits').insert({ id: tempId, ...payload });
+
+  btn.disabled = false; btn.textContent = 'Guardar beneficio';
+
+  if (error) { toast('Error al guardar: ' + error.message, 'error'); return; }
+
+  toast(editingBenefitId ? 'Beneficio actualizado.' : 'Beneficio creado.', 'success');
+  closeBenefitModal();
+  await loadBenefits();
+}
+
+async function deleteBenefit(id, name) {
+  if (!confirm(`¿Eliminar el beneficio "${name}"? Esta acción no se puede deshacer.`)) return;
+  const { error } = await db.from('benefits').delete().eq('id', id);
+  if (error) { toast('Error al eliminar.', 'error'); return; }
+  toast('Beneficio eliminado.', 'success');
+  await loadBenefits();
+}
+
+// ── Logo upload ────────────────────────────────────────────────────
+let pendingLogoFile = null;
+
+function handleLogoSelect(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  if (file.size > 512 * 1024) {
+    toast('La imagen supera los 500 KB. Usa una imagen más pequeña.', 'error');
+    input.value = '';
+    return;
+  }
+
+  pendingLogoFile = file;
+  document.getElementById('bf-logo-name').textContent = '✓ ' + file.name;
+  document.getElementById('bf-logo-name').style.display = 'block';
+
+  // Preview local
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('bf-logo-preview').innerHTML =
+      `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:contain;border-radius:10px;">`;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function uploadLogo(benefitId) {
+  if (!pendingLogoFile) return document.getElementById('bf-logo-url').value || null;
+
+  const ext  = pendingLogoFile.name.split('.').pop();
+  const path = `${benefitId}.${ext}`;
+
+  const { error } = await db.storage.from('benefit-logos').upload(path, pendingLogoFile, { upsert: true, contentType: pendingLogoFile.type });
+  if (error) { toast('Error al subir imagen: ' + error.message, 'error'); return null; }
+
+  const { data } = db.storage.from('benefit-logos').getPublicUrl(path);
+  return data.publicUrl;
+}
+
+// ── Lang tabs inside benefit modal ────────────────────────────────
+document.querySelectorAll('[data-lang-tab]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-lang-tab]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    ['es','en','pt','fr'].forEach(l => {
+      document.getElementById(`lang-panel-${l}`).style.display = l === btn.dataset.langTab ? '' : 'none';
+    });
+  });
+});
+
+document.getElementById('benefit-modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('benefit-modal')) closeBenefitModal();
+});
 
 // ── Toast ──────────────────────────────────────────────────────────
 function toast(msg, type = 'info') {

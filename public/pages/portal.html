@@ -27,11 +27,9 @@
   <div class="navbar-inner">
     <a href="/" class="navbar-brand">GAN <span>System</span></a>
     <ul class="navbar-nav">
-      <li><a href="/pages/instituciones.html">Instituciones</a></li><li><a href="/pages/portal.html" class="active" data-i18n="nav_portal"></a></li>
+      <li><a href="/pages/instituciones.html">Instituciones</a></li>
+      <li><a href="/pages/portal.html" class="active" data-i18n="nav_portal"></a></li>
       <li><a href="/pages/directorio.html" data-i18n="nav_directory"></a></li>
-      <li id="nav-admin-li" style="display:none;"><a href="/pages/admin.html" data-i18n="nav_admin"></a></li>
-      <li id="nav-superadmin-li" style="display:none;"><a href="/pages/superadmin.html">Panel Admin</a></li>
-      <li><span id="nav-hello" style="color:rgba(255,255,255,.7);font-size:.875rem;"></span></li><li><button id="nav-logout-btn" class="btn btn-ghost btn-sm" data-i18n="nav_logout"></button></li>
     </ul>
     <div class="lang-switcher">
       <button data-lang-btn="es">ES</button>
@@ -39,6 +37,12 @@
       <button data-lang-btn="pt">PT</button>
       <button data-lang-btn="fr">FR</button>
     </div>
+    <ul class="navbar-session">
+      <li id="nav-admin-li" class="hidden"><a href="/pages/admin.html" data-i18n="nav_admin"></a></li>
+      <li id="nav-superadmin-li" class="hidden"><a href="/pages/superadmin.html">Panel Admin</a></li>
+      <li id="nav-hello-li"><span id="nav-hello" style="color:rgba(255,255,255,.7);font-size:.875rem;"></span></li>
+      <li><button id="nav-logout-btn" class="btn btn-ghost btn-sm" data-i18n="nav_logout"></button></li>
+    </ul>
   </div>
 </nav>
 
@@ -56,6 +60,7 @@
     <button class="filter-chip active" data-cat="all"        data-i18n="portal_filter_all"></button>
     <button class="filter-chip"        data-cat="software"   data-i18n="portal_filter_software"></button>
     <button class="filter-chip"        data-cat="courses"    data-i18n="portal_filter_courses"></button>
+    <button class="filter-chip"        data-cat="titles"     data-i18n="portal_filter_titles"></button>
     <button class="filter-chip"        data-cat="travel"     data-i18n="portal_filter_travel"></button>
     <button class="filter-chip"        data-cat="books"      data-i18n="portal_filter_books"></button>
     <button class="filter-chip"        data-cat="events"     data-i18n="portal_filter_events"></button>
@@ -90,6 +95,30 @@
     <p>No hay beneficios disponibles en esta categoría.</p>
   </div>
 
+</div>
+
+<!-- MODAL: Confirmación de solicitud -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal" style="max-width:460px;">
+    <div class="modal-header">
+      <span class="modal-title">Solicitar beneficio</span>
+      <button class="modal-close" onclick="document.getElementById('confirm-modal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body" style="text-align:center;padding:1.5rem 2rem;">
+      <div style="font-size:2.5rem;margin-bottom:1rem;">🎁</div>
+      <p style="font-size:.95rem;color:var(--color-text);line-height:1.6;margin-bottom:.75rem;">
+        Al confirmar, <strong>Global Academic Network</strong> notificará a
+        <strong id="confirm-provider"></strong> sobre tu interés en este beneficio.
+      </p>
+      <p style="font-size:.875rem;color:var(--color-text-muted);line-height:1.6;">
+        El proveedor se comunicará contigo directamente al correo de tu perfil para coordinar el acceso.
+      </p>
+    </div>
+    <div class="modal-footer" style="justify-content:center;gap:1rem;">
+      <button class="btn btn-ghost" onclick="document.getElementById('confirm-modal').classList.remove('open')">Cancelar</button>
+      <button class="btn btn-primary" id="confirm-claim-btn">Sí, solicitar beneficio</button>
+    </div>
+  </div>
 </div>
 
 <!-- MODAL: Código de beneficio -->
@@ -132,7 +161,7 @@ let allBenefits = [];
 let currentCategory = 'all';
 
 const CATEGORY_ICONS = {
-  software: '💻', courses: '📚', travel: '✈️',
+  software: '💻', courses: '📚', titles: '🏅', travel: '✈️',
   books: '📖', events: '🎟️', other: '🎁'
 };
 
@@ -147,12 +176,8 @@ const CATEGORY_ICONS = {
   const firstName = (profile?.full_name || "").split(" ")[0];
   const helloEl = document.getElementById("nav-hello");
   if (helloEl && firstName) helloEl.textContent = `Hola, ${firstName}`;
-  if (profile?.app_role === 'institution_admin') {
-    document.getElementById('nav-admin-li').style.display = '';
-  }
-  if (profile?.app_role === 'super_admin') {
-    document.getElementById('nav-superadmin-li').style.display = '';
-  }
+  if (profile?.app_role === 'institution_admin') document.getElementById('nav-admin-li').classList.remove('hidden');
+  if (profile?.app_role === 'super_admin') document.getElementById('nav-superadmin-li').classList.remove('hidden');
 
   document.getElementById('nav-logout-btn').addEventListener('click', () => Auth.signOut());
 
@@ -284,40 +309,71 @@ function renderBenefits(benefits) {
   }).join('');
 }
 
-async function claimBenefit(benefitId) {
+let pendingClaimId = null;
+
+function claimBenefit(benefitId) {
   const benefit = allBenefits.find(b => b.id === benefitId);
   if (!benefit) return;
 
-  // Si ya está canjeado solo mostramos el modal
+  // Si ya está canjeado solo mostramos el modal con código/link
   if (benefit.claimed) {
     showCodeModal(benefit, true);
     return;
   }
 
-  // Canjear
-  const btn = document.querySelector(`.benefit-card[data-id="${benefitId}"] button`);
-  if (btn) { btn.disabled = true; btn.textContent = '...'; }
+  // Mostrar modal de confirmación
+  pendingClaimId = benefitId;
+  document.getElementById('confirm-provider').textContent = benefit.provider_name;
+  document.getElementById('confirm-modal').classList.add('open');
+}
 
-  const { data: { user } } = await db.auth.getUser();
+document.getElementById('confirm-claim-btn').addEventListener('click', async () => {
+  if (!pendingClaimId) return;
 
-  const { error: claimError } = await db
-    .from('benefit_claims')
-    .insert({ benefit_id: benefitId, user_id: user.id });
+  const benefit = allBenefits.find(b => b.id === pendingClaimId);
+  if (!benefit) return;
 
-  if (claimError && claimError.code !== '23505') {
+  const confirmBtn = document.getElementById('confirm-claim-btn');
+  confirmBtn.disabled = true;
+  confirmBtn.textContent = 'Enviando...';
+
+  const { data: { session } } = await db.auth.getSession();
+
+  const res = await fetch('/api/claim-benefit', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${session.access_token}`,
+    },
+    body: JSON.stringify({ benefit_id: pendingClaimId }),
+  });
+
+  confirmBtn.disabled = false;
+  confirmBtn.textContent = 'Sí, solicitar beneficio';
+  document.getElementById('confirm-modal').classList.remove('open');
+
+  if (!res.ok) {
     toast(I18n.t('error_generic'), 'error');
-    if (btn) { btn.disabled = false; btn.textContent = I18n.t('portal_claim'); }
     return;
   }
 
-  // Marcar como canjeado localmente
+  const json = await res.json();
   benefit.claimed = true;
 
-  showCodeModal(benefit, claimError?.code === '23505');
+  showCodeModal(benefit, json.alreadyClaimed);
   renderBenefits(currentCategory === 'all'
     ? allBenefits
     : allBenefits.filter(b => b.category === currentCategory));
-}
+
+  pendingClaimId = null;
+});
+
+document.getElementById('confirm-modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('confirm-modal')) {
+    document.getElementById('confirm-modal').classList.remove('open');
+    pendingClaimId = null;
+  }
+});
 
 function showCodeModal(benefit, alreadyClaimed) {
   document.getElementById('code-modal-title').textContent    = benefit.title;

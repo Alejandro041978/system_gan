@@ -102,6 +102,14 @@ img { max-width: 100%; display: block; }
   color: #fff;
 }
 
+.navbar-session {
+  display: flex;
+  align-items: center;
+  gap: .25rem;
+  list-style: none;
+  margin-left: 1rem;
+}
+
 .lang-switcher {
   display: flex;
   gap: .25rem;
