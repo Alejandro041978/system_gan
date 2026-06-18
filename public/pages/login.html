@@ -160,10 +160,15 @@ async function sendCode(resend = false) {
   btn.disabled = true;
   btn.textContent = 'Enviando...';
 
-  const { error } = await db.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
+  const resp = await fetch('/api/send-otp', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
+  const result = await resp.json();
 
-  if (error) {
-    errEl.textContent = error.message;
+  if (!resp.ok) {
+    errEl.textContent = result.error || 'Error al enviar el código.';
     errEl.style.display = 'block';
     btn.disabled = false;
     btn.textContent = 'Enviar código';
