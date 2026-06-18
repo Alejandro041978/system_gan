@@ -22,7 +22,8 @@
       <li><a href="/pages/instituciones.html">Instituciones</a></li><li><a href="/pages/portal.html" data-i18n="nav_portal"></a></li>
       <li><a href="/pages/directorio.html" data-i18n="nav_directory"></a></li>
       <li><a href="/pages/admin.html" class="active" data-i18n="nav_admin"></a></li>
-      <li><span id="nav-hello" style="color:rgba(255,255,255,.7);font-size:.875rem;"></span></li><li><button id="nav-logout-btn" class="btn btn-ghost btn-sm" data-i18n="nav_logout"></button></li>
+      <li id="nav-hello-li" class="hidden"><span id="nav-hello" style="color:rgba(255,255,255,.7);font-size:.875rem;"></span></li>
+      <li><button id="nav-logout-btn" class="btn btn-ghost btn-sm" data-i18n="nav_logout"></button></li>
     </ul>
     <div class="lang-switcher">
       <button data-lang-btn="es">ES</button>
@@ -75,7 +76,7 @@
         <div class="card-title" data-i18n="admin_users_title"></div>
         <div style="font-size:.85rem;color:var(--color-text-muted); margin-top:.2rem;">
           <span data-i18n="admin_users_subtitle"></span>
-          — <span id="user-count">0</span> / 5
+          — <span id="user-count">0</span> / 10
         </div>
       </div>
       <button id="add-user-btn" class="btn btn-primary btn-sm" data-i18n="admin_add_user"></button>
@@ -196,6 +197,11 @@ let editMode = false;
   authToken = session.access_token;
 
   const profile = result.profile;
+  const firstName = (profile?.full_name || '').split(' ')[0];
+  if (firstName) {
+    document.getElementById('nav-hello').textContent = `Hola, ${firstName}`;
+    document.getElementById('nav-hello-li').classList.remove('hidden');
+  }
   document.getElementById('institution-name-header').textContent =
     profile.institutions?.name || '';
 
@@ -227,7 +233,7 @@ async function loadUsers() {
   users = data.users || [];
 
   document.getElementById('user-count').textContent = users.length;
-  document.getElementById('add-user-btn').disabled = users.length >= 5;
+  document.getElementById('add-user-btn').disabled = users.length >= 10;
 
   renderUsers();
 }
@@ -240,7 +246,7 @@ function renderUsers() {
         <div class="empty-state">
           <div class="empty-state-icon">👤</div>
           <h3>Sin usuarios</h3>
-          <p>Agregue hasta 5 usuarios para su institución.</p>
+          <p>Agregue hasta 10 usuarios para su institución.</p>
         </div>
       </td></tr>`;
     return;
@@ -276,7 +282,7 @@ function renderUsers() {
 
 // ── Modal: Agregar ────────────────────────────────────────────────
 document.getElementById('add-user-btn').addEventListener('click', () => {
-  if (users.length >= 5) {
+  if (users.length >= 10) {
     toast(I18n.t('admin_users_limit'), 'warning');
     return;
   }

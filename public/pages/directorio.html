@@ -106,7 +106,7 @@ let allMembers = [];
   const result = await Auth.requireAuth();
   if (!result) return;
 
-  const profile = result.profile;
+  const profile = await Auth.getProfile();
   const firstName = (profile?.full_name || '').split(' ')[0];
   document.getElementById('nav-hello-li').classList.remove('hidden');
   if (firstName) document.getElementById('nav-hello').textContent = `Hola, ${firstName}`;
