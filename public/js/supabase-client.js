@@ -56,7 +56,7 @@ const Auth = {
 
   async resetPassword(email) {
     return db.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin
+      redirectTo: `${window.location.origin}/pages/set-password.html`
     });
   }
 };
