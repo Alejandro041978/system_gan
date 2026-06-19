@@ -289,10 +289,11 @@
             <th>Estudiantes</th>
             <th>Estado</th>
             <th>Fecha</th>
+            <th></th>
           </tr>
         </thead>
         <tbody id="institutions-tbody">
-          <tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--color-text-muted);">Cargando...</td></tr>
+          <tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--color-text-muted);">Cargando...</td></tr>
         </tbody>
       </table>
     </div>
@@ -351,6 +352,63 @@
     </div>
   </div>
 
+</div>
+
+<!-- MODAL: Editar institución -->
+<div class="modal-overlay" id="edit-institution-modal">
+  <div class="modal" style="max-width:560px;width:95%;">
+    <div class="modal-header">
+      <span class="modal-title">Editar institución</span>
+      <button class="modal-close" onclick="closeEditInstitutionModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="ei-id">
+      <div class="form-group">
+        <label class="form-label">Nombre</label>
+        <input type="text" id="ei-name" class="form-input">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+        <div class="form-group">
+          <label class="form-label">País</label>
+          <input type="text" id="ei-country" class="form-input">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tipo</label>
+          <select id="ei-type" class="form-input">
+            <option value="university">Universidad</option>
+            <option value="institute">Instituto</option>
+            <option value="other">Otro</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+        <div class="form-group">
+          <label class="form-label">Nº estudiantes</label>
+          <input type="number" id="ei-students" class="form-input" min="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Estado</label>
+          <select id="ei-status" class="form-input">
+            <option value="approved">Activa</option>
+            <option value="pending">Pendiente</option>
+            <option value="rejected">Rechazada</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Sitio web</label>
+        <input type="url" id="ei-website" class="form-input" placeholder="https://...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Descripción</label>
+        <textarea id="ei-description" class="form-input" rows="3" style="resize:vertical;"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeEditInstitutionModal()">Cancelar</button>
+      <button class="btn btn-primary" id="save-institution-btn" onclick="saveInstitution()">Guardar cambios</button>
+    </div>
+  </div>
 </div>
 
 <!-- MODAL: Editar miembro -->
@@ -1009,22 +1067,76 @@ async function loadInstitutions() {
   const { data } = await db.from('institutions').select('*').order('created_at', { ascending: false });
   const tbody = document.getElementById('institutions-tbody');
   if (!data?.length) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--color-text-muted);">Sin instituciones</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--color-text-muted);">Sin instituciones</td></tr>';
     return;
   }
+  window._allInstitutionsFull = data;
+  const statusBadge = {
+    approved: '<span class="badge badge-success">Activa</span>',
+    pending:  '<span class="badge badge-warning">Pendiente</span>',
+    rejected: '<span class="badge badge-danger">Rechazada</span>',
+  };
   tbody.innerHTML = data.map(i => `
     <tr>
       <td><strong>${i.name}</strong></td>
       <td>${i.country}</td>
       <td>${i.type}</td>
       <td>${i.student_count?.toLocaleString() || '—'}</td>
-      <td>${{ approved:'<span class="badge badge-success">Activa</span>',
-               pending: '<span class="badge badge-warning">Pendiente</span>',
-               rejected:'<span class="badge badge-danger">Rechazada</span>' }[i.status]}</td>
+      <td>${statusBadge[i.status] || i.status}</td>
       <td>${new Date(i.created_at).toLocaleDateString('es')}</td>
+      <td><button class="btn btn-outline btn-sm" onclick="openEditInstitutionModal('${i.id}')">✏️ Editar</button></td>
     </tr>
   `).join('');
 }
+
+// ── Editar institución ─────────────────────────────────────────────
+function openEditInstitutionModal(id) {
+  const inst = window._allInstitutionsFull?.find(x => x.id === id);
+  if (!inst) return;
+  document.getElementById('ei-id').value          = inst.id;
+  document.getElementById('ei-name').value        = inst.name || '';
+  document.getElementById('ei-country').value     = inst.country || '';
+  document.getElementById('ei-type').value        = inst.type || 'university';
+  document.getElementById('ei-students').value    = inst.student_count ?? '';
+  document.getElementById('ei-status').value      = inst.status || 'approved';
+  document.getElementById('ei-website').value     = inst.website || '';
+  document.getElementById('ei-description').value = inst.description || '';
+  document.getElementById('edit-institution-modal').classList.add('open');
+}
+
+function closeEditInstitutionModal() {
+  document.getElementById('edit-institution-modal').classList.remove('open');
+}
+
+async function saveInstitution() {
+  const id  = document.getElementById('ei-id').value;
+  const btn = document.getElementById('save-institution-btn');
+  btn.disabled = true;
+  btn.textContent = 'Guardando...';
+
+  const { error } = await db.from('institutions').update({
+    name:          document.getElementById('ei-name').value.trim(),
+    country:       document.getElementById('ei-country').value.trim(),
+    type:          document.getElementById('ei-type').value,
+    student_count: parseInt(document.getElementById('ei-students').value) || 0,
+    status:        document.getElementById('ei-status').value,
+    website:       document.getElementById('ei-website').value.trim() || null,
+    description:   document.getElementById('ei-description').value.trim() || null,
+  }).eq('id', id);
+
+  btn.disabled = false;
+  btn.textContent = 'Guardar cambios';
+
+  if (error) { toast('Error al guardar: ' + error.message, 'error'); return; }
+
+  toast('Institución actualizada.', 'success');
+  closeEditInstitutionModal();
+  await loadInstitutions();
+}
+
+document.getElementById('edit-institution-modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('edit-institution-modal')) closeEditInstitutionModal();
+});
 
 // ── Miembros ───────────────────────────────────────────────────────
 async function loadMembers() {
