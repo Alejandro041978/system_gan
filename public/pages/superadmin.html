@@ -1091,8 +1091,6 @@ function openEditInstitutionModal(id) {
   document.getElementById('ei-type').value        = inst.type || 'university';
   document.getElementById('ei-students').value    = inst.student_count ?? '';
   document.getElementById('ei-status').value      = inst.status || 'approved';
-  document.getElementById('ei-website').value     = inst.website || '';
-  document.getElementById('ei-description').value = inst.description || '';
   document.getElementById('edit-institution-modal').classList.add('open');
 }
 
