@@ -183,8 +183,8 @@
 
 <div class="page-header">
   <div class="container">
-    <h1>Panel de Administración GAN</h1>
-    <p>Gestión de postulaciones, instituciones y miembros.</p>
+    <h1 data-i18n="sa_title">Panel de Administración GAN</h1>
+    <p data-i18n="sa_subtitle">Gestión de postulaciones, instituciones y miembros.</p>
   </div>
 </div>
 
@@ -196,57 +196,57 @@
       <div class="stat-icon" style="background:#eff6ff;">📋</div>
       <div>
         <div class="stat-value" id="stat-total">—</div>
-        <div class="stat-label">Total postulaciones</div>
+        <div class="stat-label" data-i18n="sa_stat_total">Total postulaciones</div>
       </div>
     </div>
     <div class="stat-card">
       <div class="stat-icon" style="background:#f0fdf4;">✅</div>
       <div>
         <div class="stat-value" id="stat-approved" style="color:var(--color-success);">—</div>
-        <div class="stat-label">Aprobadas</div>
+        <div class="stat-label" data-i18n="sa_stat_approved">Aprobadas</div>
       </div>
     </div>
     <div class="stat-card">
       <div class="stat-icon" style="background:#fef2f2;">❌</div>
       <div>
         <div class="stat-value" id="stat-rejected" style="color:var(--color-danger);">—</div>
-        <div class="stat-label">Rechazadas</div>
+        <div class="stat-label" data-i18n="sa_stat_rejected">Rechazadas</div>
       </div>
     </div>
     <div class="stat-card">
       <div class="stat-icon" style="background:#fffbeb;">⏳</div>
       <div>
         <div class="stat-value" id="stat-review" style="color:var(--color-warning);">—</div>
-        <div class="stat-label">En revisión</div>
+        <div class="stat-label" data-i18n="sa_stat_review">En revisión</div>
       </div>
     </div>
     <div class="stat-card">
       <div class="stat-icon" style="background:#f8fafc;">🏛️</div>
       <div>
         <div class="stat-value" id="stat-institutions">—</div>
-        <div class="stat-label">Instituciones activas</div>
+        <div class="stat-label" data-i18n="sa_stat_institutions">Instituciones activas</div>
       </div>
     </div>
   </div>
 
   <!-- TABS -->
   <div class="tabs">
-    <button class="tab-btn active" data-tab="applications">Postulaciones</button>
-    <button class="tab-btn" data-tab="institutions">Instituciones</button>
-    <button class="tab-btn" data-tab="members">Miembros</button>
-    <button class="tab-btn" data-tab="benefits">Beneficios</button>
+    <button class="tab-btn active" data-tab="applications" data-i18n="sa_tab_applications">Postulaciones</button>
+    <button class="tab-btn" data-tab="institutions" data-i18n="sa_tab_institutions">Instituciones</button>
+    <button class="tab-btn" data-tab="members" data-i18n="sa_tab_members">Miembros</button>
+    <button class="tab-btn" data-tab="benefits" data-i18n="sa_tab_benefits">Beneficios</button>
   </div>
 
   <!-- TAB: POSTULACIONES -->
   <div id="tab-applications">
     <!-- Filtros -->
     <div class="filters-bar" style="margin-bottom:1.25rem;">
-      <button class="filter-chip active" data-filter="all">Todas</button>
-      <button class="filter-chip" data-filter="pending">Pendientes</button>
-      <button class="filter-chip" data-filter="review">En revisión</button>
-      <button class="filter-chip" data-filter="approved">Aprobadas</button>
-      <button class="filter-chip" data-filter="rejected">Rechazadas</button>
-      <input type="text" id="search-app" class="form-input" placeholder="Buscar institución o email..." style="max-width:260px; margin-left:auto;">
+      <button class="filter-chip active" data-filter="all" data-i18n="sa_filter_all">Todas</button>
+      <button class="filter-chip" data-filter="pending" data-i18n="sa_filter_pending">Pendientes</button>
+      <button class="filter-chip" data-filter="review" data-i18n="sa_filter_review">En revisión</button>
+      <button class="filter-chip" data-filter="approved" data-i18n="sa_filter_approved">Aprobadas</button>
+      <button class="filter-chip" data-filter="rejected" data-i18n="sa_filter_rejected">Rechazadas</button>
+      <input type="text" id="search-app" class="form-input" data-i18n="sa_search_placeholder" placeholder="Buscar institución o email..." style="max-width:260px; margin-left:auto;">
     </div>
 
     <!-- Layout split: lista + detalle -->
@@ -268,8 +268,8 @@
       <div style="flex:1; min-width:0;" class="detail-col">
         <div id="detail-empty" style="text-align:center; padding:4rem 2rem; color:var(--color-text-muted);">
           <div style="font-size:3rem; margin-bottom:1rem;">📋</div>
-          <h3 style="color:var(--color-text); margin-bottom:.5rem;">Selecciona una postulación</h3>
-          <p>Haz clic en cualquier postulación de la lista para ver el detalle y la evaluación de la IA.</p>
+          <h3 style="color:var(--color-text); margin-bottom:.5rem;" data-i18n="sa_select_app">Selecciona una postulación</h3>
+          <p data-i18n="sa_select_app_hint">Haz clic en cualquier postulación de la lista para ver el detalle y la evaluación de la IA.</p>
         </div>
         <div id="detail-panel" style="display:none;"></div>
       </div>
@@ -283,12 +283,12 @@
       <table class="users-table">
         <thead>
           <tr>
-            <th>Institución</th>
-            <th>País</th>
-            <th>Tipo</th>
-            <th>Estudiantes</th>
-            <th>Estado</th>
-            <th>Fecha</th>
+            <th data-i18n="sa_col_institution">Institución</th>
+            <th data-i18n="sa_col_country">País</th>
+            <th data-i18n="sa_col_type">Tipo</th>
+            <th data-i18n="sa_col_students">Estudiantes</th>
+            <th data-i18n="sa_col_status">Estado</th>
+            <th data-i18n="sa_col_date">Fecha</th>
             <th></th>
           </tr>
         </thead>
@@ -302,20 +302,20 @@
   <!-- TAB: BENEFICIOS -->
   <div id="tab-benefits" style="display:none;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
-      <p style="color:var(--color-text-muted);font-size:.875rem;">Gestiona los beneficios disponibles para los miembros de GAN.</p>
-      <button class="btn btn-primary btn-sm" onclick="openBenefitModal()">+ Nuevo beneficio</button>
+      <p style="color:var(--color-text-muted);font-size:.875rem;" data-i18n="sa_benefits_subtitle">Gestiona los beneficios disponibles para los miembros de GAN.</p>
+      <button class="btn btn-primary btn-sm" onclick="openBenefitModal()" data-i18n="sa_new_benefit">+ Nuevo beneficio</button>
     </div>
     <div class="card" style="padding:0;overflow:hidden;">
       <table class="users-table">
         <thead>
           <tr>
-            <th>Título</th>
-            <th>Proveedor</th>
-            <th>Categoría</th>
-            <th>Descuento</th>
-            <th>Válido hasta</th>
-            <th>Estado</th>
-            <th>Acciones</th>
+            <th data-i18n="sa_col_title">Título</th>
+            <th data-i18n="sa_col_provider">Proveedor</th>
+            <th data-i18n="sa_col_category">Categoría</th>
+            <th data-i18n="sa_col_discount">Descuento</th>
+            <th data-i18n="sa_col_valid_until">Válido hasta</th>
+            <th data-i18n="sa_col_status">Estado</th>
+            <th data-i18n="sa_col_actions">Acciones</th>
           </tr>
         </thead>
         <tbody id="benefits-tbody">
@@ -328,20 +328,20 @@
   <!-- TAB: MIEMBROS -->
   <div id="tab-members" style="display:none;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
-      <p style="color:var(--color-text-muted);font-size:.875rem;">Todos los usuarios registrados en GAN System.</p>
-      <button class="btn btn-primary btn-sm" onclick="openUserModal()">+ Nuevo usuario</button>
+      <p style="color:var(--color-text-muted);font-size:.875rem;" data-i18n="sa_members_subtitle">Todos los usuarios registrados en GAN System.</p>
+      <button class="btn btn-primary btn-sm" onclick="openUserModal()" data-i18n="sa_new_user">+ Nuevo usuario</button>
     </div>
     <div class="card" style="padding:0; overflow:hidden;">
       <table class="users-table">
         <thead>
           <tr>
-            <th>Nombre</th>
-            <th>Email</th>
-            <th>Institución</th>
-            <th>Cargo</th>
-            <th>Rol</th>
-            <th>Idioma</th>
-            <th>Último ingreso</th>
+            <th data-i18n="sa_col_name">Nombre</th>
+            <th data-i18n="sa_col_email">Email</th>
+            <th data-i18n="sa_col_institution">Institución</th>
+            <th data-i18n="sa_col_role">Cargo</th>
+            <th data-i18n="sa_col_approle">Rol</th>
+            <th data-i18n="sa_col_lang">Idioma</th>
+            <th data-i18n="sa_col_last_login">Último ingreso</th>
             <th></th>
           </tr>
         </thead>
@@ -674,6 +674,15 @@ let pendingDecision = null;
   }
 
   document.getElementById('nav-logout-btn').addEventListener('click', () => Auth.signOut());
+
+  // Re-renderizar contenido dinámico al cambiar idioma
+  document.addEventListener('langchange', () => {
+    const activeTab = document.querySelector('.tab-btn.active')?.dataset.tab;
+    if (activeTab === 'institutions') loadInstitutions();
+    else if (activeTab === 'members') loadMembers();
+    else if (activeTab === 'benefits') loadBenefits();
+    else renderApplicationsList();
+  });
 
   await Promise.all([loadStats(), loadApplications()]);
 
