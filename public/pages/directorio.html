@@ -122,6 +122,9 @@ let allMembers = [];
 
   await loadDirectory();
 
+  // Re-renderizar tarjetas al cambiar idioma (textos de botones etc.)
+  document.addEventListener('langchange', applyFilters);
+
   // Búsqueda y filtros
   ['search-input','filter-country','filter-institution'].forEach(id => {
     document.getElementById(id).addEventListener('input', applyFilters);

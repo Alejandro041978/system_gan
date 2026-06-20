@@ -135,7 +135,7 @@ const TRANSLATIONS = {
   en: {
     nav_apply: 'Apply',
     nav_login: 'Login',
-    nav_portal: 'Beneficios',
+    nav_portal: 'Benefits',
     nav_directory: 'Directory',
     nav_admin: 'My Institution',
     nav_logout: 'Log out',
@@ -520,8 +520,14 @@ const I18n = (() => {
     if (!TRANSLATIONS[lang]) return;
     currentLang = lang;
     localStorage.setItem('gan_lang', lang);
+    // Actualizar botón activo
+    document.querySelectorAll('[data-lang-btn]').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-lang-btn') === lang);
+    });
     applyToDOM();
     document.documentElement.lang = lang;
+    // Notificar a páginas con contenido dinámico
+    document.dispatchEvent(new CustomEvent('langchange', { detail: { lang } }));
   }
 
   function getLang() { return currentLang; }

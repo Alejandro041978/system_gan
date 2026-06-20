@@ -196,11 +196,7 @@ const CATEGORY_ICONS = {
   });
 
   // Recargar al cambiar idioma
-  document.querySelectorAll('[data-lang-btn]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      await loadBenefits();
-    });
-  });
+  document.addEventListener('langchange', () => loadBenefits());
 })();
 
 async function loadBenefits() {
