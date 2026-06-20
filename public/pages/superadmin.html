@@ -803,11 +803,36 @@ function renderApplicationsList() {
           <span style="font-size:.75rem;color:var(--color-text-muted);">
             ${new Date(a.created_at).toLocaleDateString('es', { day:'2-digit', month:'short', year:'numeric' })}
           </span>
-          ${countdownHTML}
+          <div style="display:flex;align-items:center;gap:.5rem;">
+            ${countdownHTML}
+            <button onclick="deleteApplication(event,'${a.id}')"
+              title="Eliminar postulación"
+              style="border:none;background:none;cursor:pointer;padding:2px 4px;color:var(--color-text-muted);font-size:.85rem;line-height:1;border-radius:4px;"
+              onmouseover="this.style.color='var(--color-danger)';this.style.background='#fee2e2'"
+              onmouseout="this.style.color='var(--color-text-muted)';this.style.background='none'">🗑️</button>
+          </div>
         </div>
       </div>
     `;
   }).join('');
+}
+
+async function deleteApplication(e, id) {
+  e.stopPropagation(); // Evitar que seleccione la postulación
+  if (!confirm('¿Eliminar esta postulación? Esta acción no se puede deshacer.')) return;
+
+  const { error } = await db.from('applications').delete().eq('id', id);
+  if (error) { toast('Error al eliminar: ' + error.message, 'error'); return; }
+
+  allApplications = allApplications.filter(a => a.id !== id);
+  if (selectedAppId === id) {
+    selectedAppId = null;
+    document.getElementById('detail-panel').innerHTML =
+      '<div style="padding:3rem;text-align:center;color:var(--color-text-muted);">Selecciona una postulación</div>';
+  }
+  toast('Postulación eliminada.', 'success');
+  renderApplicationsList();
+  loadStats();
 }
 
 function selectApplication(id) {
