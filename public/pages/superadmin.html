@@ -327,9 +327,25 @@
 
   <!-- TAB: MIEMBROS -->
   <div id="tab-members" style="display:none;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
       <p style="color:var(--color-text-muted);font-size:.875rem;" data-i18n="sa_members_subtitle">Todos los usuarios registrados en GAN System.</p>
       <button class="btn btn-primary btn-sm" onclick="openUserModal()" data-i18n="sa_new_user">+ Nuevo usuario</button>
+    </div>
+    <!-- Barra de búsqueda y filtros -->
+    <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1rem;">
+      <input id="members-search" type="text" placeholder="Buscar por nombre o email..." oninput="renderMembers()"
+        style="flex:1;min-width:200px;padding:.5rem .75rem;border:1px solid var(--color-border);border-radius:8px;font-size:.875rem;background:var(--color-surface);color:var(--color-text);">
+      <select id="members-filter-inst" onchange="renderMembers()"
+        style="min-width:180px;padding:.5rem .75rem;border:1px solid var(--color-border);border-radius:8px;font-size:.875rem;background:var(--color-surface);color:var(--color-text);">
+        <option value="">Todas las instituciones</option>
+      </select>
+      <select id="members-filter-role" onchange="renderMembers()"
+        style="padding:.5rem .75rem;border:1px solid var(--color-border);border-radius:8px;font-size:.875rem;background:var(--color-surface);color:var(--color-text);">
+        <option value="">Todos los roles</option>
+        <option value="super_admin">super_admin</option>
+        <option value="institution_admin">institution_admin</option>
+        <option value="member">member</option>
+      </select>
     </div>
     <div class="card" style="padding:0; overflow:hidden;">
       <table class="users-table">
@@ -1278,7 +1294,52 @@ async function loadMembers() {
     return;
   }
   window._allMembers = members;
-  tbody.innerHTML = members.map(m => {
+
+  // Poblar filtro de instituciones (sin duplicados)
+  const instSel = document.getElementById('members-filter-inst');
+  const currentInstVal = instSel.value;
+  instSel.innerHTML = '<option value="">Todas las instituciones</option>';
+  const seen = new Set();
+  members.forEach(m => {
+    const name = m.institutions?.name;
+    const id   = m.institution_id;
+    if (name && id && !seen.has(id)) {
+      seen.add(id);
+      const opt = document.createElement('option');
+      opt.value = id;
+      opt.textContent = name;
+      instSel.appendChild(opt);
+    }
+  });
+  instSel.value = currentInstVal;
+
+  renderMembers();
+}
+
+function renderMembers() {
+  const tbody   = document.getElementById('members-tbody');
+  const members = window._allMembers;
+  if (!members) return;
+
+  const search   = (document.getElementById('members-search')?.value || '').toLowerCase().trim();
+  const instId   = document.getElementById('members-filter-inst')?.value || '';
+  const roleVal  = document.getElementById('members-filter-role')?.value || '';
+
+  const filtered = members.filter(m => {
+    const matchSearch = !search
+      || m.full_name?.toLowerCase().includes(search)
+      || m.email?.toLowerCase().includes(search);
+    const matchInst = !instId || m.institution_id === instId;
+    const matchRole = !roleVal || m.app_role === roleVal;
+    return matchSearch && matchInst && matchRole;
+  });
+
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--color-text-muted);">Sin resultados.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(m => {
     const lastLogin = m.last_login
       ? new Date(m.last_login).toLocaleDateString('es', { day: '2-digit', month: 'short', year: 'numeric' })
       : '—';
