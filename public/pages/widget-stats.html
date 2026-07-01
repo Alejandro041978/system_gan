@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GAN Stats Widget</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: .75rem 1rem;
+  }
+
+  .widget {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1.5rem 2.5rem;
+    width: 100%;
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .25rem;
+    min-width: 80px;
+  }
+
+  .stat-value {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #1a56db;
+    line-height: 1;
+    transition: opacity .3s;
+  }
+
+  .stat-label {
+    font-size: .78rem;
+    color: #64748b;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .divider {
+    width: 1px;
+    height: 40px;
+    background: #e2e8f0;
+    align-self: center;
+  }
+
+  .powered {
+    width: 100%;
+    text-align: center;
+    margin-top: .5rem;
+    font-size: .68rem;
+    color: #94a3b8;
+  }
+
+  .powered a {
+    color: #1a56db;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  /* Tema oscuro: ?theme=dark */
+  body.dark {
+    background: #0f172a;
+  }
+  body.dark .stat-value { color: #60a5fa; }
+  body.dark .stat-label { color: #94a3b8; }
+  body.dark .divider    { background: #1e293b; }
+  body.dark .powered    { color: #475569; }
+  body.dark .powered a  { color: #60a5fa; }
+
+  @media (max-width: 480px) {
+    .divider { display: none; }
+    .stat-value { font-size: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+<div class="widget" id="widget">
+  <div class="stat">
+    <span class="stat-value" id="s-inst">—</span>
+    <span class="stat-label" id="l-inst">Instituciones miembro</span>
+  </div>
+  <div class="divider"></div>
+  <div class="stat">
+    <span class="stat-value" id="s-countries">—</span>
+    <span class="stat-label" id="l-countries">Países</span>
+  </div>
+  <div class="divider"></div>
+  <div class="stat">
+    <span class="stat-value" id="s-benefits">—</span>
+    <span class="stat-label" id="l-benefits">Beneficios activos</span>
+  </div>
+  <div class="divider"></div>
+  <div class="stat">
+    <span class="stat-value" id="s-members">—</span>
+    <span class="stat-label" id="l-members">Miembros registrados</span>
+  </div>
+  <div class="divider"></div>
+  <div class="stat">
+    <span class="stat-value" id="s-students">—</span>
+    <span class="stat-label" id="l-students">Estudiantes GAN</span>
+  </div>
+  <div class="powered">
+    Powered by <a href="https://system.gan.education" target="_blank">GAN System</a>
+  </div>
+</div>
+
+<script>
+  const params = new URLSearchParams(location.search);
+  const lang   = params.get('lang') || 'es';
+  const theme  = params.get('theme') || 'light';
+
+  if (theme === 'dark') document.body.classList.add('dark');
+
+  const labels = {
+    es: ['Instituciones miembro', 'Países', 'Beneficios activos', 'Miembros registrados', 'Estudiantes GAN'],
+    en: ['Member institutions', 'Countries', 'Active benefits', 'Registered members', 'GAN Students'],
+    pt: ['Instituições membro', 'Países', 'Benefícios ativos', 'Membros registrados', 'Estudantes GAN'],
+    fr: ['Institutions membres', 'Pays', 'Avantages actifs', 'Membres inscrits', 'Étudiants GAN'],
+  };
+
+  const t = labels[lang] || labels.es;
+  document.getElementById('l-inst').textContent     = t[0];
+  document.getElementById('l-countries').textContent = t[1];
+  document.getElementById('l-benefits').textContent  = t[2];
+  document.getElementById('l-members').textContent   = t[3];
+  document.getElementById('l-students').textContent  = t[4];
+
+  fetch('https://system.gan.education/api/stats')
+    .then(r => r.json())
+    .then(s => {
+      document.getElementById('s-inst').textContent     = s.institutions ?? 0;
+      document.getElementById('s-countries').textContent = s.countries   ?? 0;
+      document.getElementById('s-benefits').textContent  = s.benefits    ?? 0;
+      document.getElementById('s-members').textContent   = s.members     ?? 0;
+      document.getElementById('s-students').textContent  = (s.total_students ?? 0).toLocaleString(lang);
+    })
+    .catch(() => {});
+</script>
+</body>
+</html>
