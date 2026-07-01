@@ -181,6 +181,102 @@ export function tplDecisionNotification({ institution_name, contact_name, final_
   return { subject, html };
 }
 
+export function tplOnboarding({ institution_name, contact_name, lang = 'es' }) {
+  const appUrl = process.env.APP_URL || 'https://system.gan.education';
+  const loginUrl = `${appUrl}/pages/login.html`;
+  const portalUrl = `${appUrl}/pages/portal.html`;
+  const dirUrl = `${appUrl}/pages/directorio.html`;
+
+  const copy = {
+    es: {
+      subject: `¡Bienvenido/a a GAN System, ${institution_name}!`,
+      title: '¡Ya eres parte de la red GAN! 🎓',
+      greeting: `Estimado/a <strong>${contact_name}</strong>,`,
+      intro: `<strong>${institution_name}</strong> ya es miembro oficial de la <strong>Global Academic Network (GAN)</strong>. Aquí te explicamos cómo aprovechar al máximo tu membresía:`,
+      steps: [
+        { icon: '🔑', title: 'Accede a la plataforma', desc: `Ve a <a href="${loginUrl}" style="color:#1a56db;">${loginUrl}</a>, ingresa tu correo y recibirás un código de 6 dígitos para entrar. Sin contraseña.` },
+        { icon: '👥', title: 'Registra a tu equipo', desc: `Desde el <strong>Panel de tu Institución</strong> puedes crear cuentas para los miembros de tu equipo (hasta 10 usuarios). Cada uno recibirá un email de bienvenida con acceso inmediato al directorio de miembros GAN.` },
+        { icon: '🎁', title: 'Accede a los beneficios', desc: `En el <a href="${portalUrl}" style="color:#1a56db;">Portal de Beneficios</a> encontrarás descuentos exclusivos en software, cursos, títulos internacionales, viajes de estudio y más — disponibles para tu institución y sus estudiantes.` },
+        { icon: '🌐', title: 'Conecta con la red', desc: `En el <a href="${dirUrl}" style="color:#1a56db;">Directorio de Miembros</a> puedes conocer a los representantes de todas las instituciones GAN y contactarlos directamente.` },
+      ],
+      cta: 'Acceder a GAN System →',
+      footer: '¿Tienes preguntas? Responde a este correo y te ayudaremos. · GAN System · system.gan.education',
+    },
+    en: {
+      subject: `Welcome to GAN System, ${institution_name}!`,
+      title: 'You are now part of the GAN network! 🎓',
+      greeting: `Dear <strong>${contact_name}</strong>,`,
+      intro: `<strong>${institution_name}</strong> is now an official member of the <strong>Global Academic Network (GAN)</strong>. Here is how to make the most of your membership:`,
+      steps: [
+        { icon: '🔑', title: 'Access the platform', desc: `Go to <a href="${loginUrl}" style="color:#1a56db;">${loginUrl}</a>, enter your email and you will receive a 6-digit code to log in. No password needed.` },
+        { icon: '👥', title: 'Register your team', desc: `From your <strong>Institution Panel</strong> you can create accounts for your team members (up to 10 users). Each one will receive a welcome email with immediate access to the GAN member directory.` },
+        { icon: '🎁', title: 'Access the benefits', desc: `In the <a href="${portalUrl}" style="color:#1a56db;">Benefits Portal</a> you will find exclusive discounts on software, courses, international degrees, study trips and more — available for your institution and its students.` },
+        { icon: '🌐', title: 'Connect with the network', desc: `In the <a href="${dirUrl}" style="color:#1a56db;">Member Directory</a> you can meet representatives from all GAN institutions and contact them directly.` },
+      ],
+      cta: 'Access GAN System →',
+      footer: 'Questions? Reply to this email and we will help you. · GAN System · system.gan.education',
+    },
+    pt: {
+      subject: `Bem-vindo/a ao GAN System, ${institution_name}!`,
+      title: 'Já faz parte da rede GAN! 🎓',
+      greeting: `Caro/a <strong>${contact_name}</strong>,`,
+      intro: `<strong>${institution_name}</strong> já é membro oficial da <strong>Global Academic Network (GAN)</strong>. Veja como aproveitar ao máximo a sua adesão:`,
+      steps: [
+        { icon: '🔑', title: 'Aceda à plataforma', desc: `Vá a <a href="${loginUrl}" style="color:#1a56db;">${loginUrl}</a>, insira o seu e-mail e receberá um código de 6 dígitos para entrar. Sem senha.` },
+        { icon: '👥', title: 'Registe a sua equipa', desc: `A partir do <strong>Painel da sua Instituição</strong> pode criar contas para os membros da sua equipa (até 10 utilizadores). Cada um receberá um e-mail de boas-vindas com acesso imediato ao diretório de membros GAN.` },
+        { icon: '🎁', title: 'Aceda aos benefícios', desc: `No <a href="${portalUrl}" style="color:#1a56db;">Portal de Benefícios</a> encontrará descontos exclusivos em software, cursos, títulos internacionais, viagens de estudo e mais.` },
+        { icon: '🌐', title: 'Conecte-se com a rede', desc: `No <a href="${dirUrl}" style="color:#1a56db;">Diretório de Membros</a> pode conhecer os representantes de todas as instituições GAN e contactá-los diretamente.` },
+      ],
+      cta: 'Aceder ao GAN System →',
+      footer: 'Dúvidas? Responda a este e-mail. · GAN System · system.gan.education',
+    },
+    fr: {
+      subject: `Bienvenue sur GAN System, ${institution_name} !`,
+      title: 'Vous faites désormais partie du réseau GAN ! 🎓',
+      greeting: `Cher/Chère <strong>${contact_name}</strong>,`,
+      intro: `<strong>${institution_name}</strong> est désormais membre officiel du <strong>Réseau Académique Mondial (GAN)</strong>. Voici comment tirer le meilleur parti de votre adhésion :`,
+      steps: [
+        { icon: '🔑', title: 'Accédez à la plateforme', desc: `Rendez-vous sur <a href="${loginUrl}" style="color:#1a56db;">${loginUrl}</a>, saisissez votre e-mail et vous recevrez un code à 6 chiffres pour vous connecter. Sans mot de passe.` },
+        { icon: '👥', title: 'Inscrivez votre équipe', desc: `Depuis votre <strong>Panneau Institutionnel</strong>, vous pouvez créer des comptes pour les membres de votre équipe (jusqu'à 10 utilisateurs). Chacun recevra un e-mail de bienvenue avec accès immédiat à l'annuaire des membres GAN.` },
+        { icon: '🎁', title: 'Accédez aux avantages', desc: `Sur le <a href="${portalUrl}" style="color:#1a56db;">Portail des Avantages</a> vous trouverez des réductions exclusives sur des logiciels, cours, diplômes internationaux, voyages d'études et plus encore.` },
+        { icon: '🌐', title: 'Connectez-vous au réseau', desc: `Dans l'<a href="${dirUrl}" style="color:#1a56db;">Annuaire des Membres</a> vous pouvez rencontrer les représentants de toutes les institutions GAN et les contacter directement.` },
+      ],
+      cta: 'Accéder à GAN System →',
+      footer: 'Des questions ? Répondez à cet e-mail. · GAN System · system.gan.education',
+    },
+  };
+
+  const t = copy[lang] || copy.es;
+
+  const stepsHtml = t.steps.map(s => `
+    <tr><td style="padding:.75rem 0;border-bottom:1px solid #e2e8f0;vertical-align:top;">
+      <table cellpadding="0" cellspacing="0"><tr>
+        <td style="font-size:1.5rem;width:40px;vertical-align:top;padding-top:2px;">${s.icon}</td>
+        <td style="padding-left:.75rem;">
+          <div style="font-weight:700;color:#1e293b;margin-bottom:.2rem;">${s.title}</div>
+          <div style="color:#475569;font-size:.875rem;line-height:1.6;">${s.desc}</div>
+        </td>
+      </tr></table>
+    </td></tr>
+  `).join('');
+
+  const body = `
+    <p>${t.greeting}</p>
+    <p>${t.intro}</p>
+    <table style="width:100%;border-collapse:collapse;margin:1.25rem 0;">
+      ${stepsHtml}
+    </table>
+    <div style="text-align:center;margin:1.5rem 0;">
+      <a href="${loginUrl}" style="background:#1a56db;color:#fff;padding:.85rem 2.5rem;border-radius:8px;text-decoration:none;font-weight:700;font-size:1rem;display:inline-block;">${t.cta}</a>
+    </div>
+  `;
+
+  return {
+    subject: t.subject,
+    html: emailLayout({ title: t.title, body, footer: t.footer }),
+  };
+}
+
 // ── Layout base ──────────────────────────────────────────────────────────────
 function emailLayout({ title, body, footer, accentColor = '#1a56db' }) {
   return `<!DOCTYPE html>

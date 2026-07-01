@@ -6,7 +6,7 @@
 //   { "crons": [{ "path": "/api/notify", "schedule": "0 * * * *" }] }
 
 import { createClient } from '@supabase/supabase-js';
-import { sendEmail, tplDecisionNotification } from './_email.js';
+import { sendEmail, tplDecisionNotification, tplOnboarding } from './_email.js';
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -104,10 +104,17 @@ export default async function handler(req, res) {
 
     const emailResult = await sendEmail({ to: app.contact_email, ...tpl });
 
-    // Marcar como notificado
+    // Marcar como notificado y programar email de bienvenida (16h después) si fue aprobado
+    const onboardingAt = finalDecision === 'approved'
+      ? new Date(Date.now() + 16 * 60 * 60 * 1000).toISOString()
+      : null;
+
     await supabase
       .from('applications')
-      .update({ applicant_notified: true })
+      .update({
+        applicant_notified: true,
+        ...(onboardingAt ? { onboarding_notify_at: onboardingAt } : {}),
+      })
       .eq('id', app.id);
 
     results.push({
@@ -120,5 +127,45 @@ export default async function handler(req, res) {
     console.log(`[notify cron] Notified ${app.institution_name} → ${finalDecision}`);
   }
 
-  return res.status(200).json({ processed: results.length, results });
+  // ── Segunda pasada: emails de bienvenida (onboarding, 16h después) ──────────
+  const { data: onboardingPending } = await supabase
+    .from('applications')
+    .select('*')
+    .eq('final_decision', 'approved')
+    .eq('onboarding_sent', false)
+    .lte('onboarding_notify_at', now)
+    .not('onboarding_notify_at', 'is', null);
+
+  const onboardingResults = [];
+
+  for (const app of onboardingPending || []) {
+    const lang = app.contact_lang || 'es';
+    const tpl  = tplOnboarding({
+      institution_name: app.institution_name,
+      contact_name:     app.contact_name,
+      lang,
+    });
+
+    const emailResult = await sendEmail({ to: app.contact_email, ...tpl });
+
+    await supabase
+      .from('applications')
+      .update({ onboarding_sent: true })
+      .eq('id', app.id);
+
+    onboardingResults.push({
+      id:          app.id,
+      institution: app.institution_name,
+      email_ok:    emailResult.ok,
+    });
+
+    console.log(`[notify cron] Onboarding sent → ${app.institution_name}`);
+  }
+
+  return res.status(200).json({
+    processed: results.length,
+    results,
+    onboarding_processed: onboardingResults.length,
+    onboarding_results: onboardingResults,
+  });
 }

@@ -1062,10 +1062,15 @@ document.getElementById('decision-confirm-btn').addEventListener('click', async 
   btn.disabled = true;
   btn.textContent = '...';
 
+  const onboardingAt = decision === 'approved'
+    ? new Date(Date.now() + 16 * 60 * 60 * 1000).toISOString()
+    : null;
+
   const updates = {
     final_decision: decision,
     reviewed_at:    new Date().toISOString(),
-    final_notes:    notes || null
+    final_notes:    notes || null,
+    ...(onboardingAt ? { onboarding_notify_at: onboardingAt } : {}),
   };
 
   const { error } = await db.from('applications').update(updates).eq('id', appId);
