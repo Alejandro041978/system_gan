@@ -133,23 +133,16 @@
 
   document.getElementById('nav-logout-btn')?.addEventListener('click', () => Auth.signOut());
 
-  // Cargar estadísticas
+  // Cargar estadísticas (endpoint público con service role)
   try {
-    const [{ count: instCount }, { count: benefitCount }, { count: memberCount }, { data: instData }] = await Promise.all([
-      db.from('institutions').select('*', { count: 'exact', head: true }).eq('status', 'approved'),
-      db.from('benefits').select('*', { count: 'exact', head: true }).eq('is_active', true),
-      db.from('profiles').select('*', { count: 'exact', head: true }),
-      db.from('institutions').select('country, student_count').eq('status', 'approved'),
-    ]);
+    const resp  = await fetch('/api/stats');
+    const stats = await resp.json();
 
-    const uniqueCountries = new Set(instData?.map(r => r.country) || []).size;
-    const totalStudents   = (instData || []).reduce((s, r) => s + (r.student_count || 0), 0);
-
-    document.getElementById('stat-members').textContent      = instCount ?? 0;
-    document.getElementById('stat-countries').textContent    = uniqueCountries;
-    document.getElementById('stat-benefits').textContent     = benefitCount ?? 0;
-    document.getElementById('stat-members-count').textContent = memberCount ?? 0;
-    document.getElementById('stat-students').textContent     = totalStudents.toLocaleString('es');
+    document.getElementById('stat-members').textContent       = stats.institutions ?? 0;
+    document.getElementById('stat-countries').textContent     = stats.countries    ?? 0;
+    document.getElementById('stat-benefits').textContent      = stats.benefits     ?? 0;
+    document.getElementById('stat-members-count').textContent = stats.members      ?? 0;
+    document.getElementById('stat-students').textContent      = (stats.total_students ?? 0).toLocaleString('es');
   } catch (_) {}
 })();
 </script>
