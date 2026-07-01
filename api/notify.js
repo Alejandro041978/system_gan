@@ -88,6 +88,41 @@ export default async function handler(req, res) {
             .from('applications')
             .update({ institution_id: inst.id })
             .eq('id', app.id);
+
+          // Crear cuenta de usuario para el contacto como institution_admin
+          const { data: authUser, error: createErr } = await supabase.auth.admin.createUser({
+            email:         app.contact_email,
+            email_confirm: true,
+            user_metadata: { full_name: app.contact_name },
+          });
+
+          if (!createErr && authUser?.user) {
+            await supabase.from('profiles').upsert({
+              id:             authUser.user.id,
+              full_name:      app.contact_name,
+              email:          app.contact_email,
+              app_role:       'institution_admin',
+              institution_id: inst.id,
+              preferred_lang: app.contact_lang || 'es',
+              is_visible:     true,
+            });
+            console.log(`[notify cron] Created institution_admin for ${app.contact_email}`);
+          } else if (createErr?.message?.includes('already registered')) {
+            // User exists — update their profile to link institution
+            const { data: { users } } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+            const existing = users?.find(u => u.email === app.contact_email);
+            if (existing) {
+              await supabase.from('profiles').upsert({
+                id:             existing.id,
+                full_name:      app.contact_name,
+                email:          app.contact_email,
+                app_role:       'institution_admin',
+                institution_id: inst.id,
+                preferred_lang: app.contact_lang || 'es',
+                is_visible:     true,
+              });
+            }
+          }
         }
       }
     }

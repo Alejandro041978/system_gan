@@ -31,7 +31,7 @@ export default async function handler(req, res) {
     return res.status(403).json({ error: 'Sin permisos para crear usuarios' });
   }
 
-  const { full_name, email, role_title, app_role = 'member', institution_id, lang = 'es' } = req.body;
+  const { full_name, email, role_title, app_role = 'member', institution_id, lang = 'es', skip_welcome_email = false } = req.body;
   if (!full_name || !email) return res.status(400).json({ error: 'Nombre y email son obligatorios' });
 
   // ── 2. Validar institución y permisos ─────────────────────────────
@@ -131,7 +131,9 @@ export default async function handler(req, res) {
   </table>
 </body></html>`;
 
-  await sendEmail({ to: email, subject: t.subject, html });
+  if (!skip_welcome_email) {
+    await sendEmail({ to: email, subject: t.subject, html });
+  }
 
   return res.status(200).json({ ok: true, userId: newUserId });
 }
