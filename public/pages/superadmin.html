@@ -845,6 +845,39 @@ function renderApplicationsList() {
   }).join('');
 }
 
+async function sendOnboardingEmail(appId) {
+  const btn = document.getElementById('onboarding-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Enviando...'; }
+
+  const session = await Auth.getSession();
+  const resp = await fetch('/api/send-onboarding', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${session?.access_token}`,
+    },
+    body: JSON.stringify({ app_id: appId }),
+  });
+
+  if (!resp.ok) {
+    const { error } = await resp.json();
+    toast('Error: ' + (error || 'No se pudo enviar el correo.'), 'error');
+    if (btn) { btn.disabled = false; btn.textContent = '📨 Enviar email de bienvenida'; }
+    return;
+  }
+
+  toast('Email de bienvenida enviado correctamente.', 'success');
+
+  // Actualizar estado local
+  const app = allApplications.find(a => a.id === appId);
+  if (app) app.onboarding_sent = true;
+
+  if (btn) {
+    btn.textContent = '✉️ Onboarding ya enviado';
+    btn.disabled = false;
+  }
+}
+
 async function deleteApplication(e, id) {
   e.stopPropagation(); // Evitar que seleccione la postulación
   if (!confirm('¿Eliminar esta postulación? Esta acción no se puede deshacer.')) return;
@@ -897,6 +930,9 @@ function renderDetailPanel(app) {
     .join(', ') || '—';
 
   const canDecide = app.final_decision === 'pending';
+  const onboardingLabel = app.onboarding_sent
+    ? '✉️ Onboarding ya enviado'
+    : '📨 Enviar email de bienvenida';
   const actionButtons = canDecide ? `
     <div style="display:flex;gap:.75rem;flex-wrap:wrap;">
       <button class="btn btn-primary" onclick="openDecisionModal('${app.id}','approved')">
@@ -907,9 +943,17 @@ function renderDetailPanel(app) {
       </button>
     </div>
   ` : `
-    <div style="font-size:.875rem;color:var(--color-text-muted);">
-      Decisión final ya registrada: <strong>${app.final_decision === 'approved' ? '✅ Aprobada' : '❌ Rechazada'}</strong>
-      ${app.final_notes ? `<br><em>${app.final_notes}</em>` : ''}
+    <div>
+      <div style="font-size:.875rem;color:var(--color-text-muted);margin-bottom:.75rem;">
+        Decisión final ya registrada: <strong>${app.final_decision === 'approved' ? '✅ Aprobada' : '❌ Rechazada'}</strong>
+        ${app.final_notes ? `<br><em>${app.final_notes}</em>` : ''}
+      </div>
+      ${app.final_decision === 'approved' ? `
+      <button id="onboarding-btn" class="btn btn-outline btn-sm" onclick="sendOnboardingEmail('${app.id}')">
+        ${onboardingLabel}
+      </button>
+      ${app.onboarding_sent ? '<span style="font-size:.78rem;color:var(--color-text-muted);margin-left:.5rem;">Puedes reenviar si es necesario.</span>' : ''}
+      ` : ''}
     </div>
   `;
 
