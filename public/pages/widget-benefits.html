@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GAN Benefits Widget</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: transparent;
+    padding: 1rem;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(var(--cols, 3), 1fr);
+    gap: 1rem;
+  }
+
+  .card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: .75rem;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem;
+  }
+
+  .card-left {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    min-width: 0;
+  }
+
+  .logo {
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    object-fit: contain;
+    background: #f1f5f9;
+    flex-shrink: 0;
+  }
+
+  .logo-placeholder {
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #1e293b, #1a56db);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+  }
+
+  .meta { min-width: 0; }
+
+  .provider {
+    font-size: .72rem;
+    color: #94a3b8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .title {
+    font-size: .875rem;
+    font-weight: 700;
+    color: #1e293b;
+    line-height: 1.2;
+  }
+
+  .discount {
+    background: #1a56db;
+    color: #fff;
+    font-size: .9rem;
+    font-weight: 800;
+    padding: .35rem .65rem;
+    border-radius: 8px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .desc {
+    font-size: .78rem;
+    color: #64748b;
+    line-height: 1.55;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Tema oscuro */
+  body.dark { background: #0f172a; }
+  body.dark .card  { background: #1e293b; border-color: #334155; }
+  body.dark .title { color: #f1f5f9; }
+  body.dark .desc  { color: #94a3b8; }
+  body.dark .logo-placeholder { background: linear-gradient(135deg, #334155, #1a56db); }
+
+  @media (max-width: 600px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+  @media (min-width: 601px) and (max-width: 900px) {
+    .grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<div class="grid" id="grid"></div>
+
+<script>
+  const params = new URLSearchParams(location.search);
+  const lang   = params.get('lang')  || 'es';
+  const theme  = params.get('theme') || 'light';
+  const cols   = parseInt(params.get('cols') || '3');
+
+  if (theme === 'dark') document.body.classList.add('dark');
+  document.documentElement.style.setProperty('--cols', cols);
+
+  const catIcon = {
+    software: '💻', courses: '📚', travel: '✈️',
+    books: '📖', events: '🎟️', other: '🎁',
+  };
+
+  fetch('https://system.gan.education/api/public-benefits')
+    .then(r => r.json())
+    .then(({ benefits }) => {
+      const grid = document.getElementById('grid');
+      if (!benefits?.length) {
+        grid.innerHTML = '<p style="color:#94a3b8;font-size:.85rem;">Sin beneficios disponibles.</p>';
+        return;
+      }
+
+      grid.innerHTML = benefits.map(b => {
+        const title = b[`title_${lang}`]       || b.title_es       || '';
+        const desc  = b[`description_${lang}`] || b.description_es || '';
+
+        const logoHTML = b.provider_logo
+          ? `<img class="logo" src="${b.provider_logo}" alt="${b.provider_name}" onerror="this.style.display='none'">`
+          : `<div class="logo-placeholder">${catIcon[b.category] || '🎁'}</div>`;
+
+        const discountHTML = b.discount_pct != null
+          ? `<div class="discount">${b.discount_pct === 0 ? 'Gratis' : `-${b.discount_pct}%`}</div>`
+          : '';
+
+        return `
+          <div class="card">
+            <div class="card-header">
+              <div class="card-left">
+                ${logoHTML}
+                <div class="meta">
+                  <div class="provider">${b.provider_name}</div>
+                  <div class="title">${title}</div>
+                </div>
+              </div>
+              ${discountHTML}
+            </div>
+            <div class="desc">${desc}</div>
+          </div>`;
+      }).join('');
+    })
+    .catch(() => {});
+</script>
+</body>
+</html>
