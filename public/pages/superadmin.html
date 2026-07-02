@@ -235,6 +235,7 @@
     <button class="tab-btn" data-tab="institutions" data-i18n="sa_tab_institutions">Instituciones</button>
     <button class="tab-btn" data-tab="members" data-i18n="sa_tab_members">Miembros</button>
     <button class="tab-btn" data-tab="benefits" data-i18n="sa_tab_benefits">Beneficios</button>
+    <button class="tab-btn" data-tab="widgets">🧩 Widgets</button>
   </div>
 
   <!-- TAB: POSTULACIONES -->
@@ -296,6 +297,60 @@
           <tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--color-text-muted);">Cargando...</td></tr>
         </tbody>
       </table>
+    </div>
+  </div>
+
+  <!-- TAB: WIDGETS -->
+  <div id="tab-widgets" style="display:none;">
+    <div style="margin-bottom:1.5rem;">
+      <p style="color:var(--color-text-muted);font-size:.875rem;">Widgets embebibles para usar en sitios web externos. Copia el código y pégalo donde quieras.</p>
+    </div>
+
+    <!-- Widget: Estadísticas -->
+    <div class="card" style="margin-bottom:1.5rem;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem;margin-bottom:1.25rem;">
+        <div>
+          <h3 style="font-size:1rem;font-weight:700;margin-bottom:.25rem;">📊 Estadísticas GAN</h3>
+          <p style="font-size:.82rem;color:var(--color-text-muted);">Muestra en tiempo real: instituciones, países, beneficios, miembros y estudiantes.</p>
+        </div>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+          <select id="w-stats-lang" onchange="updateStatsWidget()" style="padding:.35rem .6rem;border:1px solid var(--color-border);border-radius:6px;font-size:.8rem;background:var(--color-surface);color:var(--color-text);">
+            <option value="es">ES</option>
+            <option value="en">EN</option>
+            <option value="pt">PT</option>
+            <option value="fr">FR</option>
+          </select>
+          <select id="w-stats-theme" onchange="updateStatsWidget()" style="padding:.35rem .6rem;border:1px solid var(--color-border);border-radius:6px;font-size:.8rem;background:var(--color-surface);color:var(--color-text);">
+            <option value="light">☀️ Claro</option>
+            <option value="dark">🌙 Oscuro</option>
+          </select>
+          <button class="btn btn-outline btn-sm" onclick="copyCode('code-stats')">📋 Copiar código</button>
+        </div>
+      </div>
+
+      <!-- Preview -->
+      <div style="border:1px solid var(--color-border);border-radius:8px;overflow:hidden;margin-bottom:1rem;background:#f8fafc;" id="w-stats-preview-wrap">
+        <iframe id="w-stats-iframe"
+          src="/pages/widget-stats.html?lang=es&theme=light"
+          width="100%" height="100" frameborder="0" scrolling="no"
+          style="display:block;">
+        </iframe>
+      </div>
+
+      <!-- Código -->
+      <div style="position:relative;">
+        <pre id="code-stats" style="background:#1e293b;color:#e2e8f0;padding:1rem 1.25rem;border-radius:8px;font-size:.78rem;overflow-x:auto;white-space:pre-wrap;word-break:break-all;margin:0;line-height:1.6;">&lt;iframe
+  src="https://system.gan.education/pages/widget-stats.html?lang=es&amp;theme=light"
+  width="100%" height="100" frameborder="0" scrolling="no"
+  style="border:none;"&gt;&lt;/iframe&gt;</pre>
+      </div>
+    </div>
+
+    <!-- Placeholder: próximos widgets -->
+    <div style="border:2px dashed var(--color-border);border-radius:12px;padding:2rem;text-align:center;color:var(--color-text-muted);">
+      <div style="font-size:2rem;margin-bottom:.5rem;">➕</div>
+      <div style="font-weight:600;margin-bottom:.25rem;">Próximos widgets</div>
+      <div style="font-size:.82rem;">Directorio de instituciones, badge de membresía, beneficios activos…</div>
     </div>
   </div>
 
@@ -726,7 +781,7 @@ let pendingDecision = null;
     btn.addEventListener('click', () => {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      ['applications','institutions','members','benefits'].forEach(t => {
+      ['applications','institutions','members','benefits','widgets'].forEach(t => {
         document.getElementById(`tab-${t}`).style.display = t === btn.dataset.tab ? '' : 'none';
       });
       if (btn.dataset.tab === 'institutions') loadInstitutions();
@@ -1355,6 +1410,33 @@ function renderMembers() {
       <td><button class="btn btn-outline btn-sm" onclick="openEditMemberModal('${m.id}')">✏️ Editar</button></td>
     </tr>`;
   }).join('');
+}
+
+// ── Widgets ────────────────────────────────────────────────────────
+function updateStatsWidget() {
+  const lang  = document.getElementById('w-stats-lang')?.value  || 'es';
+  const theme = document.getElementById('w-stats-theme')?.value || 'light';
+  const src   = `/pages/widget-stats.html?lang=${lang}&theme=${theme}`;
+
+  document.getElementById('w-stats-iframe').src = src;
+
+  // Fondo del preview según tema
+  document.getElementById('w-stats-preview-wrap').style.background =
+    theme === 'dark' ? '#0f172a' : '#f8fafc';
+
+  // Actualizar código mostrado
+  const fullSrc = `https://system.gan.education/pages/widget-stats.html?lang=${lang}&theme=${theme}`;
+  document.getElementById('code-stats').textContent =
+    `<iframe\n  src="${fullSrc}"\n  width="100%" height="100" frameborder="0" scrolling="no"\n  style="border:none;"></iframe>`;
+}
+
+function copyCode(elementId) {
+  const text = document.getElementById(elementId)?.textContent || '';
+  navigator.clipboard.writeText(text).then(() => {
+    toast('Código copiado al portapapeles.', 'success');
+  }).catch(() => {
+    toast('No se pudo copiar. Selecciona el texto manualmente.', 'error');
+  });
 }
 
 // ── Countdown helpers ──────────────────────────────────────────────
